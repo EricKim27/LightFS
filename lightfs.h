@@ -19,6 +19,7 @@ struct superblock {
     uint16_t state;
 };
 struct lightfs_inode {
+    uint64_t inum;
     uint32_t imode;
     uint32_t uid;
     uint32_t gid;
