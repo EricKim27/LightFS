@@ -1,5 +1,5 @@
 # LightFS
-This is my attempt to create a UNIX file system. It is still far from being completed.
+This is my attempt to create a UNIX file system. It is still far from being completed and working.
 
 The name is LightFS not because I made it very light, it's because I didn't considered that much and made this with a very light information about file systems.
 
