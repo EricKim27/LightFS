@@ -20,6 +20,7 @@ struct lightfs_superblock {
 };
 //inode structure
 struct lightfs_inode {
+    uint i_flag;
     uint64_t inum;
     uint32_t imode;
     uint32_t access_time;
@@ -30,6 +31,7 @@ struct lightfs_inode {
     uint64_t indirect_block_ptr[6];
     uint64_t indirect_block_double[3];
     uint16_t number_of_inodes;
+    uint64_t next_inode_ptr;
     uint16_t uid;
     uint16_t gid;
 };
@@ -39,4 +41,8 @@ struct d_entry {
     char name[128];
 };
 
-extern int lightfs_readdir(char *name[128]);
+extern int sb_freeblock(struct lightfs_superblock *);
+extern int lightfs_readdir(struct d_entry *);
+extern int lightfs_writedir(char name[128]);
+extern int lightfs_writefile(char name[128]);
+extern int lightfs_readfile(char *name[128]);
