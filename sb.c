@@ -5,6 +5,10 @@
 
 int get_sb(const char *device){
     struct lightfs_superblock *superblock = malloc(sizeof(struct lightfs_superblock));
+    if (superblock == NULL) {
+        perror("Memory allocation failed.");
+        return NULL;
+    }
 
     int device_f = open(device, O_RDONLY);
 
@@ -44,6 +48,8 @@ int check_fs(const char *device){
         free(superblock);
         return 1;
     }
+
+    printf("disk seems to be using a valid lightfs filesystem. \n");
     free(superblock);
     return 0;
 }
@@ -59,4 +65,24 @@ int sb_free_inode(const char *device){
     uint64_t freeinode = superblock->free_inode;
     free(superblock);
     return freeinode;
+}
+int write_sb(const char *device, const struct lightfs_superblock *superblock){
+    int device_f = open(device, O_WRONLY);
+    if(device_f < 0){
+        perror("File open failed.");
+        return 1;
+    }
+    off_t start_sb = lseek(device_f, 1024, SEEK_SET);
+    if(start_sb == -1){
+        perror("Failed to move to superblock location.");
+        close(device_f);
+        return 2;
+    }
+    if(write(device_f, superblock, sizeof(struct lightfs_superblock)) == -1){
+        perror("Failed to write superblock");
+        close(device_f);
+        return 3;
+    }
+    close(device_f);
+    return 0;
 }
