@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include "lightfs.h"
 
+//getting superblock data from device
 int get_sb(const char *device){
     struct lightfs_superblock *superblock = malloc(sizeof(struct lightfs_superblock));
     if (superblock == NULL) {
@@ -36,6 +37,7 @@ int get_sb(const char *device){
     return superblock;
 }
 
+//checking if the filesystem is LightFS
 int check_fs(const char *device){
     struct lightfs_superblock *superblock = get_sb(device);
     if(superblock == NULL){
@@ -54,18 +56,21 @@ int check_fs(const char *device){
     return 0;
 }
 
+//used for fetching number of free data blocks
 int sb_freeblock(const char *device){
     struct lightfs_superblock *superblock = get_sb(device);
     uint64_t freedata = superblock->free_data;
     free(superblock);
     return freedata;
 }
+//Used for fetching number of free inodes
 int sb_free_inode(const char *device){
     struct lightfs_superblock *superblock = get_sb(device);
     uint64_t freeinode = superblock->free_inode;
     free(superblock);
     return freeinode;
 }
+//This function is for writing superblocks to the disk. It is used when formatting a disk to lightfs.
 int write_sb(const char *device, const struct lightfs_superblock *superblock){
     int device_f = open(device, O_WRONLY);
     if(device_f < 0){

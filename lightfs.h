@@ -45,6 +45,7 @@ extern int get_sb(const char *device);
 extern int check_fs(const char *device);
 extern int sb_freeblock(const char *device);
 extern int sb_free_inode(const char *device);
+extern int write_sb(const char *device, const struct lightfs_superblock *superblock);
 extern int lightfs_readdir(struct d_entry *);
 extern int lightfs_writedir(char name[128]);
 extern int lightfs_writefile(char name[128]);
