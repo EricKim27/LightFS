@@ -75,19 +75,23 @@ int write_sb(const char *device, const struct lightfs_superblock *superblock){
     int device_f = open(device, O_WRONLY);
     if(device_f < 0){
         perror("File open failed.");
+        free(superblock);
         return 1;
     }
     off_t start_sb = lseek(device_f, 1024, SEEK_SET);
     if(start_sb == -1){
         perror("Failed to move to superblock location.");
+        free(superblock);
         close(device_f);
         return 2;
     }
     if(write(device_f, superblock, sizeof(struct lightfs_superblock)) == -1){
         perror("Failed to write superblock");
+        free(superblock);
         close(device_f);
         return 3;
     }
+    free(superblock);
     close(device_f);
     return 0;
 }

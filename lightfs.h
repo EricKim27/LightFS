@@ -20,7 +20,7 @@ struct lightfs_superblock {
 };
 //inode structure
 struct lightfs_inode {
-    uint i_flag;
+    uint ftype;
     uint64_t inum;
     uint32_t imode;
     uint32_t access_time;
