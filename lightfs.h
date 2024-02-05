@@ -21,6 +21,7 @@ struct lightfs_superblock {
 //inode structure
 struct lightfs_inode {
     uint ftype;
+    uint root_inode;
     uint64_t inum;
     uint32_t imode;
     uint32_t access_time;
