@@ -57,18 +57,30 @@ int check_fs(const char *device){
 }
 
 //used for fetching number of free data blocks
-int sb_freeblock(const char *device){
+uint64_t sb_freeblock(const char *device){
     struct lightfs_superblock *superblock = get_sb(device);
     uint64_t freedata = superblock->free_data;
     free(superblock);
     return freedata;
 }
+uint64_t sb_total_inode(const char *device){
+    struct lightfs_superblock *superblock = get_sb(device);
+    uint64_t totaldata = superblock->data_block_num;
+    free(superblock);
+    return totaldata;
+}
 //Used for fetching number of free inodes
-int sb_free_inode(const char *device){
+uint64_t sb_free_inode(const char *device){
     struct lightfs_superblock *superblock = get_sb(device);
     uint64_t freeinode = superblock->free_inode;
     free(superblock);
     return freeinode;
+}
+uint64_t sb_total_inode(const char *device){
+    struct lightfs_superblock *superblock = get_sb(device);
+    uint64_t totalinode = superblock->inode_block_num;
+    free(superblock);
+    return totalinode;
 }
 //This function is for writing superblocks to the disk. It is used when formatting a disk to lightfs.
 int write_sb(const char *device, const struct lightfs_superblock *superblock){
