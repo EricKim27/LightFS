@@ -31,6 +31,7 @@ struct lightfs_inode {
     uint64_t direct_block_ptr[12];
     uint64_t indirect_block_ptr[6];
     uint64_t indirect_block_double[3];
+    uint64_t indirect_block_triple;
     uint16_t number_of_inodes;
     uint64_t next_inode_ptr;
     uint16_t uid;
@@ -43,7 +44,7 @@ struct d_entry {
 };
 //inode functions
 extern int read_inode(struct lightfs_inode *inode, const char *device);
-extern int allocate_inode();
+extern uint64_t allocate_inode(const char *device);
 //superblock functions
 extern int get_sb(const char *device);
 extern int check_fs(const char *device);
