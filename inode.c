@@ -1,5 +1,7 @@
 #include "lightfs.h"
 #include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 int allocate_inode(const char *device){
     
