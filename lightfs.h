@@ -42,7 +42,7 @@ struct d_entry {
     char name[128];
 };
 //inode functions
-extern int read_inode(const uint64_t inode_number);
+extern int read_inode(struct lightfs_inode *inode, const char *device);
 extern int allocate_inode();
 //superblock functions
 extern int get_sb(const char *device);
