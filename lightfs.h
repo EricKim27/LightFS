@@ -10,13 +10,14 @@ struct lightfs_superblock {
     uint64_t free_data;
     uint32_t first_data;
     uint32_t block_size;
-    uint32_t data_grp_size;
-    uint32_t inode_grp_size;
     uint32_t inode_size;
     uint32_t mount_time;
+    uint32_t last_check_time;
+    uint32_t created_os;
     uint32_t write_time;
     uint16_t magicsig;
     uint16_t state;
+    uint16_t error;
 };
 //inode structure
 struct lightfs_inode {
