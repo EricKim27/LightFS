@@ -16,7 +16,7 @@ uint64_t allocate_inode(const char *device){
         close(device_f);
         return -1;
     }
-    for(int i=0; i<number_of_inodes; i++){
+    for(int i=0; i<=number_of_inodes; i++){
         char bitmap;
         if (read(device_f, &bitmap, 1) == -1) {
             perror("failed to read bitmap.");
@@ -24,8 +24,10 @@ uint64_t allocate_inode(const char *device){
             return -1;
         }
         if(bitmap == 0) {
+            close(device_f);
             return i;
         }
+        off_t next_bitmap = lseek(device_f, 1, SEEK_CUR);
     }
     printf("No free inodes available.\n");
     close(device_f);
