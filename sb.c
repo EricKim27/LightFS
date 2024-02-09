@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include "lightfs.h"
 
 //getting superblock data from device
-int get_sb(const char *device){
-    struct lightfs_superblock *superblock = malloc(sizeof(struct lightfs_superblock));
+int get_sb(const struct lightfs_superblock *superblock, const char *device){
+    superblock = malloc(sizeof(struct lightfs_superblock));
     if (superblock == NULL) {
         perror("Memory allocation failed.");
         return NULL;
@@ -34,13 +35,14 @@ int get_sb(const char *device){
     }
 
     close(device_f);
-    return superblock;
+    return 0;
 }
 
 //checking if the filesystem is LightFS
 int check_fs(const char *device){
-    struct lightfs_superblock *superblock = get_sb(device);
-    if(superblock == NULL){
+    struct lightfs_superblock *superblock;
+    int ret = get_sb(superblock, device);
+    if(ret == NULL){
         perror("read error");
         free(superblock);
         return 2;
@@ -58,29 +60,41 @@ int check_fs(const char *device){
 
 //used for fetching number of free data blocks
 uint64_t sb_freeblock(const char *device){
-    struct lightfs_superblock *superblock = get_sb(device);
+    struct lightfs_superblock *superblock;
+    int ret = get_sb(superblock, device);
+    if(ret == NULL){
+        perror("Failed to get superblock.");
+        free(superblock);
+        return -1;
+    }
     uint64_t freedata = superblock->free_data;
     free(superblock);
     return freedata;
 }
 uint64_t sb_total_inode(const char *device){
-    struct lightfs_superblock *superblock = get_sb(device);
+    struct lightfs_superblock *superblock;
+    int ret = get_sb(superblock, device);
+    if(ret == NULL){
+        perror("Failed to get superblock.");
+        free(superblock);
+        return -1;
+    }
     uint64_t totaldata = superblock->data_block_num;
     free(superblock);
     return totaldata;
 }
 //Used for fetching number of free inodes
 uint64_t sb_free_inode(const char *device){
-    struct lightfs_superblock *superblock = get_sb(device);
+    struct lightfs_superblock *superblock;
+    int ret = get_sb(superblock, device);
+    if(ret == NULL){
+        perror("Failed to get superblock.");
+        free(superblock);
+        return -1;
+    }
     uint64_t freeinode = superblock->free_inode;
     free(superblock);
     return freeinode;
-}
-uint64_t sb_total_inode(const char *device){
-    struct lightfs_superblock *superblock = get_sb(device);
-    uint64_t totalinode = superblock->inode_block_num;
-    free(superblock);
-    return totalinode;
 }
 //This function is for writing superblocks to the disk. It is used when formatting a disk to lightfs.
 int write_sb(const char *device, const struct lightfs_superblock *superblock){

@@ -2,6 +2,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
 
 uint64_t allocate_inode(const char *device){
     int device_f = open(device, O_RDWR);
@@ -33,6 +37,7 @@ uint64_t allocate_inode(const char *device){
     close(device_f);
     return -1;
 }
+/* going to be used later
 int read_inode(struct lightfs_inode *inode, const char *device){
     int device_f = open(device, O_RDONLY);
     if(device_f < 0){
@@ -48,6 +53,28 @@ int read_inode(struct lightfs_inode *inode, const char *device){
     }
     if (read(device_f, inode, sizeof(struct lightfs_inode)) == -1) {
         perror("failed to read inode.");
+        close(device_f);
+        return -1;
+    }
+    close(device_f);
+    return 0;
+}
+*/
+int write_inode(const struct lightfs_inode *inode, const char *device){
+    int device_f = open(device, O_RDWR);
+    if(device_f < 0){
+        perror("File open failed.");
+        return -1;
+    }
+    uint64_t number_of_inodes = sb_total_inode(device);
+    off_t start_inode = lseek(device_f, 1024 + sizeof(struct lightfs_superblock) + (number_of_inodes / 8) + (sizeof(struct lightfs_inode) * inode->inum), SEEK_SET);
+    if(start_inode == -1){
+        perror("Failed to move to inode location.");
+        close(device_f);
+        return -1;
+    }
+    if (write(device_f, inode, sizeof(struct lightfs_inode)) == -1) {
+        perror("failed to write inode.");
         close(device_f);
         return -1;
     }
