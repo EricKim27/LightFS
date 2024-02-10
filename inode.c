@@ -37,7 +37,6 @@ uint64_t allocate_inode(const char *device){
     close(device_f);
     return -1;
 }
-/* going to be used later
 int read_inode(struct lightfs_inode *inode, const char *device){
     int device_f = open(device, O_RDONLY);
     if(device_f < 0){
@@ -59,7 +58,6 @@ int read_inode(struct lightfs_inode *inode, const char *device){
     close(device_f);
     return 0;
 }
-*/
 int write_inode(const struct lightfs_inode *inode, const char *device){
     int device_f = open(device, O_RDWR);
     if(device_f < 0){

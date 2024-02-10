@@ -6,7 +6,6 @@
 
 //getting superblock data from device
 int get_sb(const struct lightfs_superblock *superblock, const char *device){
-    superblock = malloc(sizeof(struct lightfs_superblock));
     if (superblock == NULL) {
         perror("Memory allocation failed.");
         return NULL;
@@ -30,7 +29,6 @@ int get_sb(const struct lightfs_superblock *superblock, const char *device){
         close(device_f);
         return NULL;
     }
-
     close(device_f);
     return 0;
 }
