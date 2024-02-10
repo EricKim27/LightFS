@@ -16,20 +16,17 @@ int get_sb(const struct lightfs_superblock *superblock, const char *device){
 
     if(device_f < 0){
         perror("File open failed.");
-        free(superblock);
         return NULL;
     }
     off_t start_sb = lseek(device_f, 1024, SEEK_SET);
 
     if(start_sb == -1){
         perror("Failed to move to superblock location.");
-        free(superblock);
         close(device_f);
         return NULL;
     }
     if (read(device_f, superblock, sizeof(struct lightfs_superblock)) == -1) {
         perror("failed to read superblock.");
-        free(superblock);
         close(device_f);
         return NULL;
     }
@@ -44,17 +41,17 @@ int check_fs(const char *device){
     int ret = get_sb(superblock, device);
     if(ret == NULL){
         perror("read error");
-        free(superblock);
+        
         return 2;
     }
     if(superblock->magicsig != 0x10E){
         perror("Invalid filesystem");
-        free(superblock);
+        
         return 1;
     }
 
     printf("disk seems to be using a valid lightfs filesystem. \n");
-    free(superblock);
+    
     return 0;
 }
 
@@ -64,11 +61,11 @@ uint64_t sb_freeblock(const char *device){
     int ret = get_sb(superblock, device);
     if(ret == NULL){
         perror("Failed to get superblock.");
-        free(superblock);
+        
         return -1;
     }
     uint64_t freedata = superblock->free_data;
-    free(superblock);
+    
     return freedata;
 }
 uint64_t sb_total_inode(const char *device){
@@ -76,11 +73,9 @@ uint64_t sb_total_inode(const char *device){
     int ret = get_sb(superblock, device);
     if(ret == NULL){
         perror("Failed to get superblock.");
-        free(superblock);
         return -1;
     }
     uint64_t totaldata = superblock->data_block_num;
-    free(superblock);
     return totaldata;
 }
 //Used for fetching number of free inodes
@@ -89,11 +84,9 @@ uint64_t sb_free_inode(const char *device){
     int ret = get_sb(superblock, device);
     if(ret == NULL){
         perror("Failed to get superblock.");
-        free(superblock);
         return -1;
     }
     uint64_t freeinode = superblock->free_inode;
-    free(superblock);
     return freeinode;
 }
 //This function is for writing superblocks to the disk. It is used when formatting a disk to lightfs.
