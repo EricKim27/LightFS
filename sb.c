@@ -8,26 +8,26 @@
 int get_sb(const struct lightfs_superblock *superblock, const char *device){
     if (superblock == NULL) {
         perror("Memory allocation failed.");
-        return NULL;
+        return 1;
     }
 
     int device_f = open(device, O_RDONLY);
 
     if(device_f < 0){
         perror("File open failed.");
-        return NULL;
+        return 2;
     }
     off_t start_sb = lseek(device_f, 1024, SEEK_SET);
 
     if(start_sb == -1){
         perror("Failed to move to superblock location.");
         close(device_f);
-        return NULL;
+        return 3;
     }
     if (read(device_f, superblock, sizeof(struct lightfs_superblock)) == -1) {
         perror("failed to read superblock.");
         close(device_f);
-        return NULL;
+        return 4;
     }
     close(device_f);
     return 0;
