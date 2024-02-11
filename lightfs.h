@@ -44,18 +44,18 @@ struct d_entry {
     char name[128];
 };
 //inode functions
-extern uint64_t allocate_inode(const char *device);
-extern int read_inode(struct lightfs_inode *inode, const char *device);
-extern int write_inode(const struct lightfs_inode *inode, const char *device);
-extern uint64_t sb_total_inode(const char *device);
-extern uint64_t sb_free_inode(const char *device);
+extern uint64_t allocate_inode(int device);
+extern int read_inode(struct lightfs_inode *inode, int device);
+extern int write_inode(const struct lightfs_inode *inode, int device);
+extern uint64_t sb_total_inode(int device);
+extern uint64_t sb_free_inode(int device);
 
 //superblock functions
-extern int get_sb(const struct lightfs_superblock *superblock, const char *device);
-extern int check_fs(const char *device);
-extern uint64_t sb_freeblock(const char *device);
-extern uint64_t sb_free_inode(const char *device);
-extern int write_sb(const char *device, const struct lightfs_superblock *superblock);
+extern int get_sb(const struct lightfs_superblock *superblock, int device);
+extern int check_fs(int device);
+extern uint64_t sb_freeblock(int device);
+extern uint64_t sb_free_inode(int device);
+extern int write_sb(int device, const struct lightfs_superblock *superblock);
 
 //directory functions
 extern int lightfs_readdir(const char name[128]);
