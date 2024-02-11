@@ -1,6 +1,7 @@
 #include "lightfs.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 int main(int argc, char *argv[]){
     if(argc < 2){
@@ -24,7 +25,8 @@ int main(int argc, char *argv[]){
         .state = 0,
         .error = 0
     };
-    int ret = write_sb(argv[1], &sb);
+    int device = open(argv[1], O_RDWR);
+    int ret = write_sb(device, &sb);
     if(ret > 0){
         printf("Failed to write superblock.\n");
         return 1;
