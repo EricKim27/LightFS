@@ -43,7 +43,7 @@ int check_fs(int device){
 uint64_t sb_freeblock(int device){
     struct lightfs_superblock *superblock;
     int ret = get_sb(superblock, device);
-    if(ret == NULL){
+    if(ret > 0){
         perror("Failed to get superblock.");
         
         return -1;
@@ -55,7 +55,7 @@ uint64_t sb_freeblock(int device){
 uint64_t sb_total_inode(int device){
     struct lightfs_superblock *superblock;
     int ret = get_sb(superblock, device);
-    if(ret == NULL){
+    if(ret > 0){
         perror("Failed to get superblock.");
         return -1;
     }
@@ -66,7 +66,7 @@ uint64_t sb_total_inode(int device){
 uint64_t sb_free_inode(int device){
     struct lightfs_superblock *superblock;
     int ret = get_sb(superblock, device);
-    if(ret == NULL){
+    if(ret > 0){
         perror("Failed to get superblock.");
         return -1;
     }
