@@ -58,8 +58,8 @@ extern uint64_t sb_free_inode(int device);
 extern int write_sb(int device, const struct lightfs_superblock *superblock);
 
 //directory functions
-extern int lightfs_readdir(const char name[128]);
-extern int lightfs_writedir(const char name[128]);
+extern int lightfs_readdir(const struct d_entry *d_entry, int device);
+extern int lightfs_writedir(const struct d_entry *d_entry, int device);
 
 //file functions
 extern int lightfs_writefile(const char name[128]);
