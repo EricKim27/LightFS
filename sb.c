@@ -52,6 +52,31 @@ uint64_t sb_freeblock(int device){
     
     return freedata;
 }
+uint64_t sb_totalblock(int device){
+    struct lightfs_superblock *superblock;
+    int ret = get_sb(superblock, device);
+    if(ret > 0){
+        perror("Failed to get superblock.");
+        
+        return -1;
+    }
+    uint64_t totaldata = superblock->total_block_count;
+    
+    return totaldata;
+}
+uint64_t sb_bs(int device){
+    struct lightfs_superblock *superblock;
+    int ret = get_sb(superblock, device);
+    if(ret > 0){
+        perror("Failed to get superblock.");
+        
+        return -1;
+    }
+    uint64_t blocksize = superblock->block_size;
+    
+    return blocksize;
+
+}
 uint64_t sb_total_inode(int device){
     struct lightfs_superblock *superblock;
     int ret = get_sb(superblock, device);
