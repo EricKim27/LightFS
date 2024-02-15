@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <sys/types.h>
+#include <linux/fs.h>
+#include <linux/types.h>
 
 //Superblock Structure
 struct lightfs_superblock {
