@@ -48,6 +48,13 @@ struct d_entry {
 struct d_header{
     uint64_t total_item_num;
 };
+
+struct file_system_type lightfs_type{
+    .name = "lightfs",
+    .mount = lightfs_mount,
+    .kill_sb = lightfs_kill_sb,
+    .fs_flags = FS_USERNS_MOUNT,
+};
 //inode functions
 extern uint64_t allocate_inode(int device);
 extern int read_inode(struct lightfs_inode *inode, int device);
