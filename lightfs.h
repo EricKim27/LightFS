@@ -35,8 +35,7 @@ struct lightfs_inode {
     uint64_t indirect_block_ptr[12];
     uint64_t indirect_block_double[6];
     uint64_t indirect_block_triple[3];
-    uint16_t number_of_inodes;
-    uint64_t next_inode_ptr;
+    uint16_t number_of_blocks;
     uint16_t uid;
     uint16_t gid;
 };
