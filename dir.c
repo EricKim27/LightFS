@@ -1,19 +1,7 @@
 #include "lightfs.h"
 #include <unistd.h>
 
-int lightfs_read_dir_header(int device, struct d_header *d_header, uint64_t inode){
-    off_t start_dir = lseek(device, 1024 + sizeof(struct lightfs_superblock) + (sizeof(struct lightfs_inode) * sb_total_inode(device)) + (sb_bs(device) * inode), SEEK_SET);
-    if(start_dir == -1){
-        perror("Failed to move to directory location.");
-        return -1;
-    }
-    if(read(device, d_header, sizeof(struct d_header)) == -1){
-        perror("Failed to read directory header.");
-        return -1;
-    }
-    return 0;
 
-}
 int lightfs_writedir(const struct d_entry *d_entry, int device, uint64_t inode){
     struct d_header *d_header;
     int ret = lightfs_read_dir_header(device, d_header, inode);
