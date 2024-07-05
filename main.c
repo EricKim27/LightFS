@@ -30,10 +30,22 @@ int simplefs_fill_super(struct super_block *sb, void *data, int silent)
         ret = -ENOMEM;
         goto release;
     }
-    
-    sbi->block_size = chksb->block_size;
 
+    if(chksb->error != 0)
+    {
+        printk(KERN_ERR "Error was detected during fs mount. check filesystem.");
+        ret = -EIO;
+        goto release;
+    }
+    sbi->block_size = chksb->block_size;
+    sbi->created_os = chksb->created_os;
+    sbi->data_block_num = chksb->data_block_num;
+    sbi->error = 1;
+    
     return ret;
 release:
+    if(ret)
+        kfree(sbi);
     brelse(sbh);
+    return ret;
 }
