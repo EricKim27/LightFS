@@ -37,9 +37,23 @@ int simplefs_fill_super(struct super_block *sb, void *data, int silent)
         ret = -EIO;
         goto release;
     }
+    if(chksb->magicsig != sb->s_magic)
+    {
+        printk("Not a lightfs filesystem.");
+        ret = -EIO;
+        goto release;
+    }
+
     sbi->block_size = chksb->block_size;
+    sbi->total_block_count = chksb->total_block_count;
     sbi->created_os = chksb->created_os;
     sbi->data_block_num = chksb->data_block_num;
+    sbi->inode_block_num = chksb->inode_block_num;
+    sbi->mount_time = chksb->mount_time;
+    sbi->inode_size = chksb->inode_size;
+    sbi->root_inode = chksb->root_inode;
+    sbi->last_check_time = chksb->last_check_time;
+
     sbi->error = 1;
     
     return ret;

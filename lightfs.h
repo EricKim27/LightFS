@@ -1,23 +1,22 @@
+#include <linux/types.h>
 #define lightfs_magic 0x20070207
-typedef unsigned long long uint64_t;
-typedef unsigned int uint32_t;
-typedef unsigned short uint16_t;
 
-//Superblock Structure
+//Superblock Structure(1024 bytes in size)
 struct lightfs_superblock {
-    uint64_t inode_block_num;
-    uint64_t total_block_count;
-    uint64_t data_block_num;
-    uint64_t free_inode;
-    uint64_t free_data;
-    uint32_t first_data;
-    uint32_t block_size;
-    uint32_t inode_size;
-    uint32_t mount_time;
-    uint32_t last_check_time;
-    uint32_t created_os;
-    uint32_t write_time;
-    uint16_t magicsig;
-    uint16_t state;
-    uint16_t error;
+    __u64 inode_block_num;
+    __u64 total_block_count;
+    __u64 data_block_num;
+    __u64 free_inode;
+    __u64 free_data;
+    __u64 root_inode;
+    __u32 block_size;
+    __u32 inode_size;
+    __u32 mount_time;
+    __u32 last_check_time;
+    __u32 created_os;
+    __u32 write_time;
+    __u16 magicsig;
+    __u16 state;
+    __u16 error;
+    char padding[942];
 };
