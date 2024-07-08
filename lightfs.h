@@ -1,6 +1,10 @@
 #include <linux/types.h>
+#include <linux/atomic.h>
 #include <linux/fs.h>
+#include <linux/bpf.h>
+
 #define lightfs_magic 0x20070207
+#define NULL ((void *)0)
 
 //Superblock Structure(1024 bytes in size)
 struct lightfs_superblock {
@@ -22,7 +26,6 @@ struct lightfs_superblock {
     char padding[942];
 };
 
-const struct super_operations lightfs_s_ops;
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 int calculate_root_offset(int num);
 void lightfs_put_super(struct super_block *sb);

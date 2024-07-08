@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/buffer_head.h>
 #include <linux/slab.h>
+#include <linux/dcache.h>
 #include "lightfs.h"
 
 const struct super_operations lightfs_s_ops = {
@@ -33,7 +34,7 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
         ret = -EIO;
         goto release;
     }
-    sbi = kzalloc(sizeof(struct lightfs_superblock), GFP_KERNEL);
+    sbi = kmalloc(sizeof(struct lightfs_superblock), GFP_KERNEL);
 
     if(!sbi)
     {
