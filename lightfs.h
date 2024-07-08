@@ -23,8 +23,10 @@ struct lightfs_superblock {
 };
 
 const struct super_operations lightfs_s_ops;
-int simplefs_fill_super(struct super_block *sb, void *data, int silent);
+int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 int calculate_root_offset(int num);
 void lightfs_put_super(struct super_block *sb);
 int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
 int lightfs_syncfs(struct super_block *sb, int wait);
+
+struct inode *lightfs_iget(struct super_block *sb, __u64 inode);

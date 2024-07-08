@@ -9,7 +9,8 @@ const struct super_operations lightfs_s_ops = {
     .statfs = lightfs_statfs,
     .sync_fs = lightfs_syncfs,
 };
-int simplefs_fill_super(struct super_block *sb, void *data, int silent)
+
+int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 {
     struct buffer_head *sbh = NULL;
     struct lightfs_superblock *chksb = NULL;
@@ -62,8 +63,16 @@ int simplefs_fill_super(struct super_block *sb, void *data, int silent)
     sbi->last_check_time = chksb->last_check_time;
     sbi->created_os = chksb->created_os;
     sbi->error = 1;
+    sb->s_fs_info = sbi;
     brelse(sbh);
+
     sb->s_op = &lightfs_s_ops;
+    root_inode = lightfs_iget(sb, sbi->root_inode);
+    if(IS_ERR(root_inode))
+    {
+        ret = PTR_ERR(root_inode);
+        goto release;
+    }
     return ret;
 release:
     if(ret)
