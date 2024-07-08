@@ -1,4 +1,5 @@
 #include <linux/types.h>
+#include <linux/fs.h>
 #define lightfs_magic 0x20070207
 
 //Superblock Structure(1024 bytes in size)
@@ -20,3 +21,10 @@ struct lightfs_superblock {
     __u16 error;
     char padding[942];
 };
+
+const struct super_operations lightfs_s_ops;
+int simplefs_fill_super(struct super_block *sb, void *data, int silent);
+int calculate_root_offset(int num);
+void lightfs_put_super(struct super_block *sb);
+int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
+int lightfs_syncfs(struct super_block *sb, int wait);

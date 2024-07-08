@@ -1,7 +1,14 @@
 #include <linux/fs.h>
+#include <linux/module.h>
 #include <linux/buffer_head.h>
+#include <linux/slab.h>
 #include "lightfs.h"
 
+const struct super_operations lightfs_s_ops = {
+    .put_super = lightfs_put_super,
+    .statfs = lightfs_statfs,
+    .sync_fs = lightfs_syncfs,
+};
 int simplefs_fill_super(struct super_block *sb, void *data, int silent)
 {
     struct buffer_head *sbh = NULL;
@@ -11,7 +18,7 @@ int simplefs_fill_super(struct super_block *sb, void *data, int silent)
     int ret = 0;
 
     sb->s_magic = lightfs_magic;
-    sb_set_block_size(sb, 1024);
+    sb_set_blocksize(sb, 1024);
     sbh = sb_bread(sb, 1);
     if(!sbh)
         return -EIO;
@@ -53,9 +60,10 @@ int simplefs_fill_super(struct super_block *sb, void *data, int silent)
     sbi->inode_size = chksb->inode_size;
     sbi->root_inode = chksb->root_inode;
     sbi->last_check_time = chksb->last_check_time;
-
+    sbi->created_os = chksb->created_os;
     sbi->error = 1;
-    
+    brelse(sbh);
+    sb->s_op = &lightfs_s_ops;
     return ret;
 release:
     if(ret)
