@@ -18,6 +18,7 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
     struct inode *root_inode = NULL;
     int ret = 0;
 
+    sb->s_op = &lightfs_s_ops;
     sb->s_magic = lightfs_magic;
     sb_set_blocksize(sb, 1024);
     sbh = sb_bread(sb, 1);
@@ -28,7 +29,8 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 
     if(chksb->magicsig != sb->s_magic)
     {
-        ret = 1;
+        printk("Not a lightfs filesystem.\n");
+        ret = -EIO;
         goto release;
     }
     sbi = kzalloc(sizeof(struct lightfs_superblock), GFP_KERNEL);
@@ -41,13 +43,7 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 
     if(chksb->error != 0)
     {
-        printk(KERN_ERR "Error was detected during fs mount. check filesystem.");
-        ret = -EIO;
-        goto release;
-    }
-    if(chksb->magicsig != sb->s_magic)
-    {
-        printk("Not a lightfs filesystem.");
+        printk(KERN_ERR "Error was detected during fs mount. Check filesystem.\n");
         ret = -EIO;
         goto release;
     }
@@ -66,17 +62,24 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
     sb->s_fs_info = sbi;
     brelse(sbh);
 
-    sb->s_op = &lightfs_s_ops;
     root_inode = lightfs_iget(sb, sbi->root_inode);
     if(IS_ERR(root_inode))
     {
         ret = PTR_ERR(root_inode);
-        goto release;
+        goto release_sbi;
     }
+
+    sb->s_root = d_make_root(root_inode);
+    if(!sb->s_root)
+    {
+        ret = -ENOMEM;
+        goto release_sbi;
+    }
+
     return ret;
+release_sbi:
+    kfree(sbi);
 release:
-    if(ret)
-        kfree(sbi);
     brelse(sbh);
     return ret;
 }
