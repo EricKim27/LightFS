@@ -3,6 +3,7 @@
 #include <linux/buffer_head.h>
 #include <linux/slab.h>
 #include <linux/dcache.h>
+#include <linux/statfs.h>
 #include "lightfs.h"
 
 const struct super_operations lightfs_s_ops = {
@@ -83,4 +84,20 @@ release_sbi:
 release:
     brelse(sbh);
     return ret;
+}
+int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+{
+    struct super_block *sb = dentry->d_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+
+    buf->f_type = lightfs_magic;
+    buf->f_bsize = sbi->block_size;
+    buf->f_blocks = sbi->data_block_num;
+    buf->f_bfree = sbi->free_data;
+    buf->f_bavail = sbi->free_data;
+    buf->f_files = sbi->inode_block_num;
+    buf->f_ffree = sbi->free_inode;
+    buf->f_namelen = lightfs_fnlen;
+
+    return 0;
 }

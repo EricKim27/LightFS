@@ -4,6 +4,7 @@
 #include <linux/bpf.h>
 
 #define lightfs_magic 0x20070207
+#define lightfs_fnlen 60
 #define NULL ((void *)0)
 
 //Superblock Structure(1024 bytes in size)
