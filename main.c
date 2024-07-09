@@ -1,9 +1,10 @@
-#include <linux/fs.h>
 #include <linux/module.h>
 #include <linux/buffer_head.h>
 #include <linux/slab.h>
 #include <linux/dcache.h>
 #include <linux/statfs.h>
+#include <linux/fs.h>
+#include <linux/blkdev.h>
 #include "lightfs.h"
 
 const struct super_operations lightfs_s_ops = {
@@ -11,6 +12,7 @@ const struct super_operations lightfs_s_ops = {
     .statfs = lightfs_statfs,
     .sync_fs = lightfs_syncfs,
 };
+
 struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,
@@ -103,7 +105,7 @@ int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
     struct lightfs_superblock *sbi = sb->s_fs_info;
 
     buf->f_type = lightfs_magic;
-    buf->f_bsize = sbi->block_size;
+    buf->f_bsize = LIGHTFS_LOGICAL_BS;
     buf->f_blocks = sbi->data_block_num;
     buf->f_bfree = sbi->free_data;
     buf->f_bavail = sbi->free_data;
@@ -142,7 +144,13 @@ static int __init lightfs_initfs(void)
 err:
     return ret;
 }
-
+int lightfs_syncfs(struct super_block *sb, int wait)
+{
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    //TODO: add additional syncing mechanism
+    sync_blockdev(sb->s_bdev);
+    return 0;
+}
 static void __exit lightfs_exit(void)
 {
     int ret = unregister_filesystem(&lightfs_fs_type);
