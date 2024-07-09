@@ -11,7 +11,19 @@ const struct super_operations lightfs_s_ops = {
     .statfs = lightfs_statfs,
     .sync_fs = lightfs_syncfs,
 };
+struct dentry *lightfs_mount(struct file_system_type *fs_type,
+                              int flags,
+                              const char *dev_name,
+                              void *data)
+{
+    struct dentry *dntry = mount_bdev(fs_type, flags, dev_name, data, lightfs_fill_super);
+    if(IS_ERR(dntry))
+        pr_err("mount failure at %s\n", dev_name);
+    else
+        pr_info("mount success: %s\n", dev_name);
 
+    return dntry;
+}
 int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 {
     struct buffer_head *sbh = NULL;
@@ -101,3 +113,48 @@ int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 
     return 0;
 }
+void lightfs_kill_super(struct super_block *sb)
+{
+    kill_block_super(sb);
+    //TODO: additional jobs
+    pr_info("unmounted lightfs drive\n");
+}
+
+static struct file_system_type lightfs_fs_type = {
+    .owner = THIS_MODULE,
+    .name = "lightfs",
+    .mount = lightfs_mount,
+    .kill_sb = lightfs_kill_super,
+    .fs_flags = FS_REQUIRES_DEV,
+    .next = NULL,
+};
+
+static int __init lightfs_initfs(void)
+{
+    int ret;
+    ret = register_filesystem(&lightfs_fs_type);
+    if(ret) {
+        pr_err("Failed FS registration.\n");
+        goto err;
+    }
+    pr_info("loaded LightFS module\n");
+    return 0;
+err:
+    return ret;
+}
+
+static void __exit lightfs_exit(void)
+{
+    int ret = unregister_filesystem(&lightfs_fs_type);
+    if (ret)
+        pr_err("Failed to unregister file system\n");
+    
+    pr_info("unloaded module\n");
+}
+
+module_init(lightfs_initfs);
+module_exit(lightfs_exit);
+
+MODULE_LICENSE("GPL v2");
+MODULE_AUTHOR("Eric Kim");
+MODULE_DESCRIPTION("LightFS filesystem module");

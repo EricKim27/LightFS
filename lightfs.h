@@ -32,5 +32,9 @@ int calculate_root_offset(int num);
 void lightfs_put_super(struct super_block *sb);
 int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
 int lightfs_syncfs(struct super_block *sb, int wait);
-
+void lightfs_kill_super(struct super_block *sb);
+struct dentry *lightfs_mount(struct file_system_type *fs_type,
+                              int flags,
+                              const char *dev_name,
+                              void *data);
 struct inode *lightfs_iget(struct super_block *sb, __u64 inode);
