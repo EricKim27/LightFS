@@ -11,7 +11,7 @@ void lightfs_get_bitmap(struct super_block *sb)
 
     unsigned int d_breadno = (sbi->data_block_num / LIGHTFS_LOGICAL_BS);
     unsigned int i_breadno = (sbi->inode_block_num / LIGHTFS_LOGICAL_BS);
-
+    unsigned int i_bmap_offset = 2 + d_breadno;
     unsigned int i;
     //read datablock bitmap TODO: Think of a offset calculation method.
     for(i = 0; i <= d_breadno; i++)
@@ -25,6 +25,19 @@ void lightfs_get_bitmap(struct super_block *sb)
             return;
         }
         memcpy(sbi->data_bitmap + (i * LIGHTFS_LOGICAL_BS), bh->b_data, LIGHTFS_LOGICAL_BS);
+        brelse(bh);
+    }
+    for(i = 0; i <= i_breadno; i++)
+    {
+        bh = sb_bread(sb, i_bmap_offset+i);
+        if(!bh)
+        {
+            printk(KERN_ERR "Read Error during reading inode bitmap: .\n");
+            kfree(sbi->inode_bmap);
+            kfree(sbi->data_bitmap);
+            return;
+        }
+        memcpy(sbi->inode_bmap + (i * LIGHTFS_LOGICAL_BS), bh->b_data, LIGHTFS_LOGICAL_BS);
         brelse(bh);
     }
     
