@@ -25,7 +25,9 @@ struct lightfs_superblock {
     __u16 magicsig;
     __u16 state;
     __u16 error;
-    char padding[942];
+    bool *inode_bmap;
+    bool *data_bitmap;
+    char padding[926];
 };
 
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
