@@ -3,24 +3,27 @@
 #include <linux/fs.h>
 #include <linux/bpf.h>
 /*
- - Structure of the filesystem:
+ - Structure of the filesystem
 
     +---------------+
     | 1024 reserved |
     +---------------+
-    |  superblock   |
+    |   superblock  |
     +---------------+
     |  data bitmap  |
     |   (1 and 0)   |
     +---------------+
     |  inode bitmap |
     +---------------+
-    |   inode area  |
+    |  inode area   |
     +---------------+
     |   data area   |
     +---------------+
 
     superblock structure is 1024 bytes, and the inode is 256 bytes.
+    the filesystem is divided into logical blocks, which is 1024 bytes in size.
+    all the structure is designed to fit in within this size. exactly 4 inodes will fit
+    inside one logical blocks, and data block size is expected to be n * 1024 bytes in size.
 */
 #define lightfs_magic 0x20070207
 #define lightfs_fnlen 60
@@ -48,7 +51,7 @@ struct lightfs_superblock {
     bool *data_bitmap;
     char padding[926];
 };
-
+//This is the inode structure for the filesystem. It is in 256 bytes in size.
 struct lightfs_inode {
     __u32 i_mode;
     __u32 i_uid;

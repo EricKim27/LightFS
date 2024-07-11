@@ -30,7 +30,7 @@ int lightfs_get_bitmap(struct super_block *sb)
         bh = sb_bread(sb, i_bmap_offset+i);
         if(!bh)
         {
-            printk(KERN_ERR "Read Error during reading inode bitmap: failed to read inode bitmap.\n");
+            printk(KERN_ERR "Read Error during reading bitmap: failed to read inode bitmap.\n");
             goto error;
         }
         memcpy(sbi->inode_bmap + (i * LIGHTFS_LOGICAL_BS), bh->b_data, LIGHTFS_LOGICAL_BS);
