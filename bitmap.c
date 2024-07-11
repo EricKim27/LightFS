@@ -2,6 +2,7 @@
 #include <linux/slab.h>
 #include <linux/buffer_head.h>
 
+//getting bitmap and connecting it to the superblock structure. Used when filling superblock structure.
 int lightfs_get_bitmap(struct super_block *sb)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
@@ -43,6 +44,7 @@ error:
     return -EIO;
 }
 
+//free bitmap structure. Used during umount job.
 void lightfs_free_bitmap(struct super_block *sb)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;

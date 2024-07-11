@@ -8,16 +8,16 @@
     +---------------+
     | 1024 reserved |
     +---------------+
-    |   superblock  |
+    | superblock    |
     +---------------+
-    |  data bitmap  |
-    |   (1 and 0)   |
+    | data bitmap   |
+    | (1 and 0)     |
     +---------------+
-    |  inode bitmap |
+    | inode bitmap  |
     +---------------+
-    |  inode area   |
+    | inode area    |
     +---------------+
-    |   data area   |
+    | data area     |
     +---------------+
 
     superblock structure is 1024 bytes, and the inode is 256 bytes.
@@ -57,14 +57,19 @@ struct lightfs_inode {
     __u32 i_uid;
     __u32 i_gid;
     __u32 i_size;
-    __u32 i_atime;
-    __u32 i_mtime;
-    __u32 i_ctime;
+    struct timespec64 i_atime;
+    struct timespec64 i_mtime;
+    struct timespec64 i_ctime;
     __u32 blocks;
     __u32 block[12];
     __u32 ind_blk[4];
     __u32 d_ind_blk[2];
-    char padding[152];
+    char padding[116];
+};
+
+struct lightfs_dentry {
+    char filename[lightfs_fnlen];
+    __u64 inode;
 };
 
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);

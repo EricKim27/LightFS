@@ -3,6 +3,7 @@
 #include <linux/buffer_head.h>
 #include <linux/dcache.h>
 
+//getting inode structure from disk
 struct inode *lightfs_iget(struct super_block *sb, __u64 inode)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
@@ -23,6 +24,14 @@ struct inode *lightfs_iget(struct super_block *sb, __u64 inode)
 
     raw_inode = (struct lightfs_inode *)(bh->b_data + inode_location_inlb);
     //TODO: fill the memory inode structure with raw inode structure.
+    i_gid_write(mem_inode, raw_inode->i_gid);
+    i_uid_write(mem_inode, raw_inode->i_uid);
+    mem_inode->i_size = raw_inode->i_size;
+
+    mem_inode->__i_atime = raw_inode->i_atime;
+    mem_inode->__i_mtime = raw_inode->i_mtime;
+    mem_inode->__i_ctime = raw_inode->i_ctime;
+
     brelse(bh);
     return mem_inode;
 error:
