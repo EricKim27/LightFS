@@ -65,7 +65,6 @@ struct lightfs_inode {
 };
 
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
-int calculate_root_offset(int num);
 void lightfs_put_super(struct super_block *sb);
 int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
