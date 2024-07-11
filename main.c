@@ -84,7 +84,9 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
         ret = PTR_ERR(root_inode);
         goto release_sbi;
     }
-
+    //get bitmap info
+    lightfs_get_bitmap(sb);
+    //get root inode
     sb->s_root = d_make_root(root_inode);
     if(!sb->s_root)
     {
@@ -118,6 +120,7 @@ int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 void lightfs_kill_super(struct super_block *sb)
 {
     kill_block_super(sb);
+    lightfs_free_bitmap(sb);
     //TODO: additional jobs
     pr_info("unmounted lightfs drive\n");
 }
