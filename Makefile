@@ -1,5 +1,5 @@
 # Makefile
-obj-m := main.o bitmap.o inode.o
+obj-m := main.o bitmap.o inode.o file.o bitmap.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)

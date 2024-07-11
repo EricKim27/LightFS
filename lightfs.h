@@ -69,10 +69,11 @@ struct lightfs_inode {
 
 struct lightfs_inode_info {
     struct inode vfs_inode;
-    __u32 block[12];
-    __u32 ind_blk[4];
-    __u32 d_ind_blk[2];
-}
+    __u32 blocks;
+    __u32 *block;
+    __u32 *ind_blk;
+    __u32 *d_ind_blk;
+};
 struct lightfs_dentry {
     char filename[lightfs_fnlen];
     __u64 inode;
