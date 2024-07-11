@@ -40,7 +40,7 @@ int lightfs_get_bitmap(struct super_block *sb)
 error:
     kfree(sbi->inode_bmap);
     kfree(sbi->data_bitmap); 
-    return -EIO  
+    return -EIO;
 }
 
 void lightfs_free_bitmap(struct super_block *sb)

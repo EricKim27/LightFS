@@ -19,7 +19,7 @@
     +---------------+
     |   data area   |
     +---------------+
-    
+
     superblock structure is 1024 bytes, and the inode is 256 bytes.
 */
 #define lightfs_magic 0x20070207
@@ -67,7 +67,7 @@ struct lightfs_inode {
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 int calculate_root_offset(int num);
 void lightfs_put_super(struct super_block *sb);
-void lightfs_get_bitmap(struct super_block *sb);
+int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
 int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
 int lightfs_syncfs(struct super_block *sb, int wait);
