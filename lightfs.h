@@ -81,16 +81,24 @@ struct lightfs_dentry {
 
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 void lightfs_put_super(struct super_block *sb);
-int lightfs_get_bitmap(struct super_block *sb);
-void lightfs_free_bitmap(struct super_block *sb);
-int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
-int lightfs_syncfs(struct super_block *sb, int wait);
-void lightfs_kill_super(struct super_block *sb);
-void *get_block(struct super_block *sb, __u32 num);
 struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,
                               void *data);
+
+int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
+int lightfs_syncfs(struct super_block *sb, int wait);
+void lightfs_kill_super(struct super_block *sb);
+
+int lightfs_get_bitmap(struct super_block *sb);
+void lightfs_free_bitmap(struct super_block *sb);
+
+
+void *get_block(struct super_block *sb, __u32 num);
+
 struct inode *lightfs_iget(struct super_block *sb, size_t inode);
+struct dentry *lightfs_lookup(struct inode *dir,
+                            struct dentry *dentry,
+                            unsigned int flags);
 #define LIGHTFS_INODE(inode) \
     (container_of(inode, struct lightfs_inode_info, vfs_inode))
