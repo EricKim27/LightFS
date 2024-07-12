@@ -2,11 +2,12 @@
 #include <linux/slab.h>
 #include <linux/buffer_head.h>
 #include <linux/dcache.h>
+#include <linux/string.h>
 
 struct inode_operations lightfs_inode_operations;
 
 //getting inode structure from disk
-struct inode *lightfs_iget(struct super_block *sb, __u64 inode)
+struct inode *lightfs_iget(struct super_block *sb, size_t inode)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct buffer_head *bh = NULL;
@@ -36,9 +37,12 @@ struct inode *lightfs_iget(struct super_block *sb, __u64 inode)
     mem_inode->__i_atime = raw_inode->i_atime;
     mem_inode->__i_mtime = raw_inode->i_mtime;
     mem_inode->__i_ctime = raw_inode->i_ctime;
-    ci->block = &raw_inode->block;//This would not work. Need to figure out a way to do it.
+    //The bottom 3 lines would not work. Need to figure out a way to do it.
+    /*
+    ci->block = &raw_inode->block;
     ci->d_ind_blk = &raw_inode->d_ind_blk;
     ci->ind_blk = &raw_inode->ind_blk;
+    */
 
      if (S_ISDIR(mem_inode->i_mode)) {
         //TODO: define operations
@@ -59,18 +63,46 @@ struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags)
 {
+    struct dentry *found_dentry;
     struct super_block *sb = dir->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
     struct lightfs_inode_info *ci = dir->i_private;
+    struct lightfs_dentry *dentry_info = NULL;
+
+    found_dentry = d_lookup(dentry, &dentry->d_name);
+    if(found_dentry) {
+        return found_dentry;
+    }
     
     unsigned int i;
-    char *buf;
-    for(i=0, i<ci->blocks; i++)
+    void *raw_dir = kmalloc(ci->blocks * sbi->block_size, GFP_KERNEL);
+    if(!raw_dir)
     {
-        if(i<12)
-        {
-            buf = (char *)get_block(sb, ci->block[i]);
-            //TODO: Think of a block buffering mechanism
-        }
+        printk(KERN_ERR "Error while allocating area for dentry_lookup: line 77 @ inode.c\n");
+        return NULL;
     }
-    char *block = (char *)get_block(sb, ci->block[0]);
+    //directory block has the maximum block of 12 blocks.
+    for(i=0; i<ci->blocks && i<12; i++)
+    {
+        void *buf;
+        buf = get_block(sb, ci->block[i]);
+        if(buf == NULL)
+        {
+            printk(KERN_ERR "Error while get_block() function: line 87 @ inode.c\n");
+        }
+        memcpy(raw_dir + (i * sbi->block_size), buf, sbi->block_size);
+    }
+
+    dentry_info = (struct lightfs_dentry *)raw_dir;
+    size_t num_entries = (ci->blocks * sbi->block_size) / sizeof(struct lightfs_dentry);
+    for(i=0; i<num_entries; i++)
+    {
+        if(strncmp(dentry_info->filename, dentry->d_name.name, sizeof(dentry_info->filename)))
+        {
+            //TODO: return dentry job
+        }
+        dentry_info++;
+    }
+    
+    return NULL;
 }

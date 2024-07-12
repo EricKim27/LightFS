@@ -91,6 +91,6 @@ struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,
                               void *data);
-struct inode *lightfs_iget(struct super_block *sb, __u64 inode);
+struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 #define LIGHTFS_INODE(inode) \
     (container_of(inode, struct lightfs_inode_info, vfs_inode))

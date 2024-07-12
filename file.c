@@ -15,7 +15,7 @@ void *get_block(struct super_block *sb, __u32 num)
     {
         return NULL;
     }
-    unsiged int i;
+    unsigned int i;
 
     for(i = 0; i<logical_per_physical; i++)
     {
