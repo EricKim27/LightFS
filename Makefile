@@ -1,5 +1,6 @@
 # Makefile
-obj-m := main.o bitmap.o inode.o file.o bitmap.o
+obj-m += lightfs.o
+module-obj := main.o bitmap.o inode.o file.o bitmap.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)

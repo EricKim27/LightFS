@@ -75,22 +75,37 @@ struct dentry *lightfs_lookup(struct inode *dir,
     }
     
     unsigned int i;
+    unsigned int j;
     void *raw_dir = kmalloc(ci->blocks * sbi->block_size, GFP_KERNEL);
     if(!raw_dir)
     {
         printk(KERN_ERR "Error while allocating area for dentry_lookup: line 77 @ inode.c\n");
+        kfree(raw_dir);
         return NULL;
     }
     //directory block has the maximum block of 12 blocks.
     for(i=0; i<ci->blocks && i<12; i++)
     {
-        void *buf;
-        buf = get_block(sb, ci->block[i]);
-        if(buf == NULL)
+        struct buffer_head **bh = NULL;
+        bh = get_block(sb, ci->block[i]);
+        void *blkbuf = kmalloc(sizeof(sbi->block_size), GFP_KERNEL);
+        if(bh == NULL)
         {
             printk(KERN_ERR "Error while get_block() function: line 87 @ inode.c\n");
         }
-        memcpy(raw_dir + (i * sbi->block_size), buf, sbi->block_size);
+
+        for(j=0; j<(sbi->block_size / LIGHTFS_LOGICAL_BS); j++)
+        {
+            memcpy(blkbuf + (j*sbi->block_size), bh[i]->b_data + (i * LIGHTFS_LOGICAL_BS), LIGHTFS_LOGICAL_BS);
+        }
+
+        memcpy(raw_dir + (i*sbi->block_size), blkbuf, sbi->block_size);
+        memset(blkbuf, 0, sbi->block_size);
+
+        for(j=0; j<(sbi->block_size / LIGHTFS_LOGICAL_BS); j++)
+        {
+            brelse(bh[j]);
+        }
     }
 
     dentry_info = (struct lightfs_dentry *)raw_dir;
@@ -100,9 +115,12 @@ struct dentry *lightfs_lookup(struct inode *dir,
         if(strncmp(dentry_info->filename, dentry->d_name.name, sizeof(dentry_info->filename)))
         {
             //TODO: return dentry job
+            
+            kfree(raw_dir);
+            return found_dentry;
         }
         dentry_info++;
     }
-    
+    kfree(raw_dir);
     return NULL;
 }
