@@ -10,10 +10,10 @@
     +---------------+
     | superblock    |
     +---------------+
-    | data bitmap   |
+    | inode bitmap  |
     | (1 and 0)     |
     +---------------+
-    | inode bitmap  |
+    | data bitmap   |
     +---------------+
     | inode area    |
     +---------------+
