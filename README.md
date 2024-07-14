@@ -6,3 +6,4 @@ The name is LightFS not because I made it very light, it's because I didn't cons
 I'm still learning about file systems, so it'll take some time to complete it.
 
 [to do list](todo.md)
+[Korean Documentation](https://erikkim27.notion.site/LightFS-0971ce0a06a648a8b92a4cdf36e7749d)
