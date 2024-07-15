@@ -123,7 +123,6 @@ struct dentry *lightfs_lookup(struct inode *dir,
     kfree(raw_dir);
     return NULL;
 }
-/*
 int simplefs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
@@ -132,6 +131,7 @@ int simplefs_create(struct mnt_idmap *id,
 {
     struct lightfs_dentry *dentry = NULL;
     struct super_block *sb = dir->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
     struct inode *inode;
     struct lightfs_inode *inode_i;
     struct lightfs_inode_info *ii;
@@ -146,8 +146,22 @@ int simplefs_create(struct mnt_idmap *id,
     inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
     //TODO: set operations
 
+    //add entry to block
     bh = get_block(sb, ii->block[0]);
     dh = (struct lightfs_d_head *)bh[0]->b_data;
-    size_t new_dentry_offset = (dh->item_num * sizeof(struct lightfs_dentry));//TODO: think of a way to calculate the offset
+
+    size_t block_num = dh->item_num+1 / 64;
+    size_t block_shift = dh->item_num+1 % 64;
+
+    if(block_shift == 0) {
+        bh = get_block(sb, ii->block[block_num-1]);
+    } else {
+        bh = get_block(sb, ii->block[block_num]);
+    }
+    
+    size_t dentry_tail = (dh->item_num+1) - 64 * (block_num - 1);
+    size_t lb_num = dentry_tail / 16;
+    //TODO: think of a reading mechanism for calculating the tail of the dentry structure.
+
+    return 0;
 }
-*/

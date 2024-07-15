@@ -86,6 +86,7 @@ struct lightfs_dentry {
 
 struct lightfs_d_head {
     __u64 item_num;
+    char padding[60];
 };
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 void lightfs_put_super(struct super_block *sb);
