@@ -30,6 +30,7 @@ struct lightfs_inode_info;
 #define lightfs_fnlen 60
 #define LIGHTFS_LOGICAL_BS 1024
 #define NULL ((void *)0)
+
 //Superblock Structure(1024 bytes in size)
 struct lightfs_superblock {
     __u64 inode_block_num;
@@ -51,6 +52,7 @@ struct lightfs_superblock {
     bool *data_bitmap;
     char padding[926];
 };
+
 //This is the inode structure for the filesystem. It is in 256 bytes in size.
 struct lightfs_inode {
     __u32 i_mode;
@@ -67,6 +69,7 @@ struct lightfs_inode {
     char padding[116];
 };
 
+//inode container
 struct lightfs_inode_info {
     struct inode vfs_inode;
     __u32 blocks;
@@ -74,11 +77,16 @@ struct lightfs_inode_info {
     __u32 *ind_blk;
     __u32 *d_ind_blk;
 };
+
+//dentry for lightfs
 struct lightfs_dentry {
     char filename[lightfs_fnlen];
     __u64 inode;
 };
 
+struct lightfs_d_head {
+    __u64 item_num;
+};
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 void lightfs_put_super(struct super_block *sb);
 struct dentry *lightfs_mount(struct file_system_type *fs_type,
@@ -94,11 +102,16 @@ int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
 
 
-void *get_block(struct super_block *sb, __u32 num);
+struct buffer_head **get_block(struct super_block *sb, __u32 num);
 
 struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags);
+int simplefs_create(struct mnt_idmap *id,
+                       struct inode *dir,
+                       struct dentry *dentry,
+                       umode_t mode,
+                       bool excl);
 #define LIGHTFS_INODE(inode) \
     (container_of(inode, struct lightfs_inode_info, vfs_inode))

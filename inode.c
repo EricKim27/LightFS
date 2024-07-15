@@ -124,3 +124,31 @@ struct dentry *lightfs_lookup(struct inode *dir,
     kfree(raw_dir);
     return NULL;
 }
+/*
+int simplefs_create(struct mnt_idmap *id,
+                       struct inode *dir,
+                       struct dentry *dentry,
+                       umode_t mode,
+                       bool excl)
+{
+    struct lightfs_dentry *dentry = NULL;
+    struct super_block *sb = dir->i_sb;
+    struct inode *inode;
+    struct lightfs_inode *inode_i;
+    struct lightfs_inode_info *ii;
+    struct buffer_head **bh;
+    struct lightfs_d_head *dh;
+    inode = new_inode(sb);
+    unsigned int i;
+
+    inode->i_ino = get_next_ino();
+    inode_init_owner(id, inode, dir, mode);
+    inode->i_size = 0;
+    inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+    //TODO: set operations
+
+    bh = get_block(sb, ii->block[0]);
+    dh = (struct lightfs_d_head *)bh[0]->b_data;
+    size_t new_dentry_offset = (dh->item_num * sizeof(struct lightfs_dentry));//TODO: think of a way to calculate the offset
+}
+*/

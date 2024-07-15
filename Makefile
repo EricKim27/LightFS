@@ -1,11 +1,11 @@
 # Makefile
-obj-m += lightfs.o
-module-obj := main.o bitmap.o inode.o file.o bitmap.o
+obj-m += LightFS.o
+LightFS-objs := main.o bitmap.o inode.o file.o bitmap.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
 
-default:
+all:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 
 clean:
