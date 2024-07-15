@@ -163,5 +163,13 @@ int simplefs_create(struct mnt_idmap *id,
     size_t lb_num = dentry_tail / 16;
     //TODO: think of a reading mechanism for calculating the tail of the dentry structure.
 
+    for(i = 0; i<4; i++)
+    {
+        mark_buffer_dirty(bh[i]);
+    }
+    for(i = 0; i<4; i++)
+    {
+        brelse(bh[i]);
+    }
     return 0;
 }

@@ -25,11 +25,12 @@
     all the structure is designed to fit in within this size. exactly 4 inodes will fit
     inside one logical blocks, and data block size is expected to be n * 1024 bytes in size.
 */
-struct lightfs_inode_info;
+
 #define lightfs_magic 0x20070207
 #define lightfs_fnlen 60
 #define LIGHTFS_LOGICAL_BS 1024
 #define NULL ((void *)0)
+#define NUM_LB_PB(block_size) LIGHTFS_LOGICAL_BS / block_size
 
 //Superblock Structure(1024 bytes in size)
 struct lightfs_superblock {
@@ -85,8 +86,9 @@ struct lightfs_dentry {
 };
 
 struct lightfs_d_head {
+    __u64 magic;
     __u64 item_num;
-    char padding[60];
+    char padding[56];
 };
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 void lightfs_put_super(struct super_block *sb);
@@ -114,5 +116,3 @@ int simplefs_create(struct mnt_idmap *id,
                        struct dentry *dentry,
                        umode_t mode,
                        bool excl);
-#define LIGHTFS_INODE(inode) \
-    (container_of(inode, struct lightfs_inode_info, vfs_inode))
