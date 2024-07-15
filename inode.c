@@ -108,7 +108,7 @@ struct dentry *lightfs_lookup(struct inode *dir,
         }
     }
 
-    dentry_info = (struct lightfs_dentry *)raw_dir;
+    dentry_info = (struct lightfs_dentry *)(raw_dir + sizeof(struct lightfs_d_head));
     size_t num_entries = (ci->blocks * sbi->block_size) / sizeof(struct lightfs_dentry);
     for(i=0; i<num_entries; i++)
     {
