@@ -28,8 +28,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
         printk(KERN_ERR "Error while reading inode,\n");
         goto error;
     }
-    raw_inode = (struct lightfs_inode *)(bh->b_data + inode_location_inlb);
-    //TODO: fill the memory inode structure with raw inode structure.
+    raw_inode = (struct lightfs_inode *)(bh->b_data + (inode_location_inlb * sizeof(struct lightfs_inode)));
     i_gid_write(mem_inode, raw_inode->i_gid);
     i_uid_write(mem_inode, raw_inode->i_uid);
     mem_inode->i_size = le32_to_cpu(raw_inode->i_size);
@@ -37,12 +36,12 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     mem_inode->__i_atime = raw_inode->i_atime;
     mem_inode->__i_mtime = raw_inode->i_mtime;
     mem_inode->__i_ctime = raw_inode->i_ctime;
-    //The bottom 3 lines would not work. Need to figure out a way to do it.
-    /*
-    ci->block = &raw_inode->block;
-    ci->d_ind_blk = &raw_inode->d_ind_blk;
-    ci->ind_blk = &raw_inode->ind_blk;
-    */
+    ci->block = kmalloc(sizeof(raw_inode->block));
+    ci->d_ind_blk = kmalloc(sizeof(raw_inode->d_ind_blk));
+    ci->ind_blk = kmalloc(sizeof(raw_inode->ind_blk));
+    memcpy(ci->block, raw_inode->block, sizeof(raw_inode->block));
+    memcpy(ci->d_ind_blk, raw_inode->d_ind_blk, sizeof(raw_inode->d_ind_blk));
+    memcpy(ci->ind_blk, raw_inode->ind_blk, sizeof(raw_inode->ind_blk));
 
      if (S_ISDIR(mem_inode->i_mode)) {
         //TODO: define operations
