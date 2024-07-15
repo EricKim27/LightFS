@@ -111,7 +111,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags);
-int simplefs_create(struct mnt_idmap *id,
+int lightfs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
                        umode_t mode,

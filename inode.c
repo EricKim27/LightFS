@@ -123,13 +123,14 @@ struct dentry *lightfs_lookup(struct inode *dir,
     kfree(raw_dir);
     return NULL;
 }
-int simplefs_create(struct mnt_idmap *id,
+int lightfs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
                        umode_t mode,
                        bool excl)
 {
-    struct lightfs_dentry *dentry = NULL;
+    struct lightfs_dentry *dentry_location = NULL;
+    struct lightfs_dentry *dentry_from = kmalloc(sizeof(struct lightfs_dentry), GFP_KERNEL);
     struct super_block *sb = dir->i_sb;
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct inode *inode;
@@ -147,6 +148,8 @@ int simplefs_create(struct mnt_idmap *id,
     //TODO: set operations
 
     //add entry to block
+    dentry_from->filename = dentry->d_name.name;
+    dentry_from->inode = dentry->d_inode.i_ino;
     bh = get_block(sb, ii->block[0]);
     dh = (struct lightfs_d_head *)bh[0]->b_data;
 
@@ -155,13 +158,22 @@ int simplefs_create(struct mnt_idmap *id,
 
     if(block_shift == 0) {
         bh = get_block(sb, ii->block[block_num-1]);
+
     } else {
         bh = get_block(sb, ii->block[block_num]);
     }
+    if(!bh) {
+        printk(KERN_ERR "Error at line 163 @ inode.c\n");
+        return -EIO;
+    }
     
     size_t dentry_tail = (dh->item_num+1) - 64 * (block_num - 1);
-    size_t lb_num = dentry_tail / 16;
-    //TODO: think of a reading mechanism for calculating the tail of the dentry structure.
+    size_t lb_num = block_shift / 14;
+    size_t lb_shift = block_shift % 14;
+    dentry_location = &((struct lightfs_dentry *)bh[lb_num]->b_data)[lb_shift+1];
+    
+    memcpy(dentry_location, dentry_from, sizeof(struct lightfs_dentry));
+
 
     for(i = 0; i<4; i++)
     {
@@ -171,5 +183,7 @@ int simplefs_create(struct mnt_idmap *id,
     {
         brelse(bh[i]);
     }
+
+    kfree(dentry_from);
     return 0;
 }
