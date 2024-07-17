@@ -90,6 +90,8 @@ struct lightfs_d_head {
     __u64 item_num;
     char padding[56];
 };
+int lightfs_get_first_bit(struct super_block *sb);
+
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 void lightfs_put_super(struct super_block *sb);
 struct dentry *lightfs_mount(struct file_system_type *fs_type,

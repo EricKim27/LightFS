@@ -52,7 +52,7 @@ void lightfs_free_bitmap(struct super_block *sb)
     kfree(sbi->data_bitmap);
 }
 
-static int lightfs_get_first_bit(struct super_block *sb)
+int lightfs_get_first_bit(struct super_block *sb)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     bool *bmap_cursor;
