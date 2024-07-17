@@ -51,3 +51,7 @@ void lightfs_free_bitmap(struct super_block *sb)
     kfree(sbi->inode_bmap);
     kfree(sbi->data_bitmap);
 }
+static int lightfs_get_first_bit(struct super_block *sb)
+{
+    
+}

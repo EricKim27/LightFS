@@ -39,6 +39,3 @@ int lightfs_iterate_dir(struct inode *dir, struct dentry *dentry)
     return -ENOENT;
 }
 
-int lightfs_get_dir_tail(struct inode *dir){
-    
-}
