@@ -49,8 +49,8 @@ struct lightfs_superblock {
     __u16 magicsig;
     __u16 state;
     __u16 error;
-    bool *inode_bmap;
-    bool *data_bitmap;
+    void* inode_bmap;
+    void* data_bitmap;
     char padding[926];
 };
 
