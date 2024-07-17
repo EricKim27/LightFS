@@ -1,6 +1,7 @@
 #include <linux/types.h>
 #include <linux/atomic.h>
 #include <linux/fs.h>
+#include <linux/stat.h>
 #include <linux/bpf.h>
 /*
  - Structure of the filesystem

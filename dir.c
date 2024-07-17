@@ -20,7 +20,7 @@ int lightfs_iterate_dir(struct inode *dir, struct dentry *dentry)
         printk(KERN_ERR "Error on dir.c line 17");
         return -EIO;
     }
-    head = (struct lightfs_inode_info *)bh[0];
+    head = (struct lightfs_d_head *)bh[0]->b_data;
     for(pb = 0; pb < head->item_num; pb++)
     {
         bh = get_block(sb, i_info->block[pb]);

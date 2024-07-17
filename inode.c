@@ -1,5 +1,6 @@
 #include "lightfs.h"
 #include <linux/slab.h>
+#include <linux/kernel.h>
 #include <linux/buffer_head.h>
 #include <linux/dcache.h>
 #include <linux/string.h>
@@ -11,7 +12,7 @@ static const struct file_operations lightfs_link_operations;
 static const struct file_operations lightfs_dir_operations;
 
 //getting inode structure from disk
-static struct inode *lightfs_iget(struct super_block *sb, size_t inode)
+struct inode *lightfs_iget(struct super_block *sb, size_t inode)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct buffer_head *bh = NULL;
@@ -131,7 +132,7 @@ struct dentry *lightfs_lookup(struct inode *dir,
     return NULL;
 }
 
-static int lightfs_create(struct mnt_idmap *id,
+int lightfs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
                        umode_t mode,
@@ -154,13 +155,13 @@ static int lightfs_create(struct mnt_idmap *id,
     inode->i_ino = get_next_ino();
     inode_init_owner(id, inode, dir, mode);
     inode->i_size = 0;
-    inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+    inode->__i_atime = inode->__i_mtime = inode->__i_ctime = current_time(inode);
     
     size_t b_offset = 1 + (inode->i_ino / LIGHTFS_LOGICAL_BS) + 1;
     size_t b_shift = inode->i_ino % LIGHTFS_LOGICAL_BS;
     bbh = sb_bread(sb, b_offset);
     bool *bmap_mark = (bool *)(bbh->b_data) + b_shift;
-    bmap_mark = 1;
+    *bmap_mark = 1;
 
     size_t i_offset = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1) + (inode->i_ino / 4) + 1;
     size_t i_shift = inode->i_ino % 4;
@@ -168,18 +169,19 @@ static int lightfs_create(struct mnt_idmap *id,
     inode_i = (struct lightfs_inode *)(ibh->b_data) + i_shift;
 
     //TODO: set operations
-    inode_i->i_atime = inode_i->i_mtime = inode_i->i_ctime = inode->i_atime;
+    inode_i->i_atime = inode_i->i_mtime = inode_i->i_ctime = inode->__i_atime;
     inode_i->i_mode = inode->i_mode;
-    inode_i->i_gid = inode->i_gid;
-    inode_i->i_uid = inode->i_uid;
+    inode_i->i_gid = inode->i_gid.val;
+    inode_i->i_uid = inode->i_uid.val;
     inode_i->i_size = inode->i_size;
     memcpy(inode_i->block, ii->block, sizeof(__u32) * 12);
     memcpy(inode_i->ind_blk, ii->ind_blk, sizeof(__u32) * 4);
     memcpy(inode_i->d_ind_blk, ii->d_ind_blk, sizeof(__u32) * 2);
 
     //add entry to block
-    dentry_from->filename = dentry->d_name.name;
-    dentry_from->inode = dentry->d_inode.i_ino;
+    strncpy(dentry_from->filename, dentry->d_name.name, sizeof(dentry_from->filename) - 1);
+    dentry_from->filename[sizeof(dentry_from->filename) - 1] = '\0';
+    dentry_from->inode = dentry->d_inode->i_ino;
     bh = get_block(sb, ii->block[0]);
     dh = (struct lightfs_d_head *)bh[0]->b_data;
 
@@ -221,4 +223,8 @@ static int lightfs_create(struct mnt_idmap *id,
 
     kfree(dentry_from);
     return 0;
+}
+int lightfs_mkdir(struct mnt_idmap *id, struct inode *dir, struct dentry *dentry, umode_t mode)
+{
+    return lightfs_create(id, dir, dentry, mode | S_IFDIR, 0);
 }

@@ -56,7 +56,7 @@ int lightfs_get_first_bit(struct super_block *sb)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     bool *bmap_cursor;
-    bmap_cursor = (bool *)(sbi->data_bmap);
+    bmap_cursor = (bool *)(sbi->data_bitmap);
     unsigned int i;
     for(i = 0; i<sbi->data_block_num; i++)
     {
