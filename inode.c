@@ -12,7 +12,7 @@ static const struct file_operations lightfs_link_operations;
 static const struct file_operations lightfs_dir_operations;
 
 //getting inode structure from disk
-struct inode *lightfs_iget(struct super_block *sb, size_t inode)
+static struct inode *lightfs_iget(struct super_block *sb, size_t inode)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct buffer_head *bh = NULL;
@@ -66,7 +66,7 @@ error:
     brelse(bh);
     return NULL;
 }
-struct dentry *lightfs_lookup(struct inode *dir,
+static struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags)
 {
@@ -132,7 +132,7 @@ struct dentry *lightfs_lookup(struct inode *dir,
     return NULL;
 }
 
-int lightfs_create(struct mnt_idmap *id,
+static int lightfs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
                        umode_t mode,

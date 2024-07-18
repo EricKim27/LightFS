@@ -13,7 +13,7 @@ const struct super_operations lightfs_s_ops = {
     .sync_fs = lightfs_syncfs,
 };
 
-struct dentry *lightfs_mount(struct file_system_type *fs_type,
+static struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,
                               void *data)
@@ -26,7 +26,7 @@ struct dentry *lightfs_mount(struct file_system_type *fs_type,
 
     return dntry;
 }
-int lightfs_fill_super(struct super_block *sb, void *data, int silent)
+static int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 {
     struct buffer_head *sbh = NULL;
     struct lightfs_superblock *chksb = NULL;
@@ -101,7 +101,7 @@ release:
     brelse(sbh);
     return ret;
 }
-int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
     struct super_block *sb = dentry->d_sb;
     struct lightfs_superblock *sbi = sb->s_fs_info;
@@ -117,7 +117,7 @@ int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 
     return 0;
 }
-void lightfs_kill_super(struct super_block *sb)
+static void lightfs_kill_super(struct super_block *sb)
 {
     kill_block_super(sb);
     lightfs_free_bitmap(sb);
@@ -147,7 +147,7 @@ static int __init lightfs_initfs(void)
 err:
     return ret;
 }
-int lightfs_syncfs(struct super_block *sb, int wait)
+static int lightfs_syncfs(struct super_block *sb, int wait)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     //TODO: add additional syncing mechanism

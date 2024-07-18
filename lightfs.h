@@ -93,16 +93,16 @@ struct lightfs_d_head {
 };
 int lightfs_get_first_bit(struct super_block *sb);
 
-int lightfs_fill_super(struct super_block *sb, void *data, int silent);
-void lightfs_put_super(struct super_block *sb);
-struct dentry *lightfs_mount(struct file_system_type *fs_type,
+static int lightfs_fill_super(struct super_block *sb, void *data, int silent);
+static void lightfs_put_super(struct super_block *sb);
+static struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,
                               void *data);
 
-int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
-int lightfs_syncfs(struct super_block *sb, int wait);
-void lightfs_kill_super(struct super_block *sb);
+static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
+static int lightfs_syncfs(struct super_block *sb, int wait);
+static void lightfs_kill_super(struct super_block *sb);
 
 int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
@@ -110,11 +110,11 @@ void lightfs_free_bitmap(struct super_block *sb);
 
 struct buffer_head **get_block(struct super_block *sb, __u32 num);
 
-struct inode *lightfs_iget(struct super_block *sb, size_t inode);
-struct dentry *lightfs_lookup(struct inode *dir,
+static struct inode *lightfs_iget(struct super_block *sb, size_t inode);
+static struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags);
-int lightfs_create(struct mnt_idmap *id,
+static int lightfs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
                        umode_t mode,
