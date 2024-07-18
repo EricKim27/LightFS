@@ -169,6 +169,7 @@ int lightfs_create(struct mnt_idmap *id,
     inode_i = (struct lightfs_inode *)(ibh->b_data) + i_shift;
 
     //TODO: set operations
+    
     inode_i->i_atime = inode_i->i_mtime = inode_i->i_ctime = inode->__i_atime;
     inode_i->i_mode = inode->i_mode;
     inode_i->i_gid = inode->i_gid.val;
@@ -177,7 +178,7 @@ int lightfs_create(struct mnt_idmap *id,
     memcpy(inode_i->block, ii->block, sizeof(__u32) * 12);
     memcpy(inode_i->ind_blk, ii->ind_blk, sizeof(__u32) * 4);
     memcpy(inode_i->d_ind_blk, ii->d_ind_blk, sizeof(__u32) * 2);
-
+    d_instantiate(dentry, inode);
     //add entry to block
     strncpy(dentry_from->filename, dentry->d_name.name, sizeof(dentry_from->filename) - 1);
     dentry_from->filename[sizeof(dentry_from->filename) - 1] = '\0';
@@ -187,7 +188,11 @@ int lightfs_create(struct mnt_idmap *id,
 
     size_t block_num = dh->item_num+1 / 64;
     size_t block_shift = dh->item_num+1 % 64;
-
+    if(S_ISDIR(inode->i_mode)) {
+        init_dir(sb, inode, dir);
+        if(!init_dir)
+            printk(KERN_ERR "Error at line 192 @ inode.c\n");
+    }
     if(block_shift == 0) {
         bh = get_block(sb, ii->block[block_num-1]);
 
@@ -224,7 +229,11 @@ int lightfs_create(struct mnt_idmap *id,
     kfree(dentry_from);
     return 0;
 }
-int lightfs_mkdir(struct mnt_idmap *id, struct inode *dir, struct dentry *dentry, umode_t mode)
+static int lightfs_mkdir(struct mnt_idmap *id, struct inode *dir, struct dentry *dentry, umode_t mode)
 {
     return lightfs_create(id, dir, dentry, mode | S_IFDIR, 0);
+}
+static int lightfs_link(struct mnt_idmap *id, struct inode *dir, struct dentry *dentry, umode_t mode)
+{
+    return lightfs_create(id, dir, dentry, mode | S_IFLNK, 0);
 }

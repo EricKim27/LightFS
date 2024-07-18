@@ -39,3 +39,33 @@ int lightfs_iterate_dir(struct inode *dir, struct dentry *dentry)
     return -ENOENT;
 }
 
+int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
+{
+    struct buffer_head **bh;
+    struct lightfs_dentry *dentry;
+    struct lightfs_inode_info *i_info = dir->i_private;
+    char *my_name = ".";
+    char *parent_name = "..";
+    __u32 blk_num = i_info->block[0];
+    bh = get_block(sb, blk_num);
+    if(!bh)
+    {
+        printk(KERN_ERR "error at line 49 @ dir.c\n");
+        return -EIO;
+    }
+    dentry = (struct lightfs_dentry *)(bh[0]->b_data);
+    strncpy(dentry->filename, my_name, strlen(my_name) + 1);
+    dentry->inode = dir->i_ino;
+    dentry++;
+
+    strncpy(dentry->filename, parent_name, strlen(parent_name) + 1);
+    dentry->inode = parent->i_ino;
+
+    mark_buffer_dirty(bh[0]);
+    unsigned int i;
+    for(i=0; i<4; i++)
+    {
+        brelse(bh[i]);
+    }
+    return 0;
+}

@@ -119,3 +119,5 @@ int lightfs_create(struct mnt_idmap *id,
                        struct dentry *dentry,
                        umode_t mode,
                        bool excl);
+
+int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);

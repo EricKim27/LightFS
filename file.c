@@ -52,3 +52,16 @@ struct buffer_head **get_block(struct super_block *sb, __u32 num)
 
     return bh;
 }
+static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, loff_t *ppos)
+{
+    struct inode *inode = file->f_mapping->host;
+    struct address_space *mapping = inode->i_mapping;
+    struct buffer_head *bh;
+    char *kbuf;
+    ssize_t ret = 0;
+    loff_t pos = *ppos;
+    loff_t size = i_size_read(inode);
+    //TODO: think of a way to read 4 logical blocks
+
+    return 0;
+}
