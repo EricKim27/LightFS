@@ -111,7 +111,7 @@ void lightfs_free_bitmap(struct super_block *sb);
 
 struct buffer_head **get_block(struct super_block *sb, __u32 num);
 
-static struct inode *lightfs_iget(struct super_block *sb, size_t inode);
+struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 static struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags);

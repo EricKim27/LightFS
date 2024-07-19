@@ -12,7 +12,7 @@ static const struct file_operations lightfs_link_operations;
 static const struct file_operations lightfs_dir_operations;
 
 //getting inode structure from disk
-static struct inode *lightfs_iget(struct super_block *sb, size_t inode)
+struct inode *lightfs_iget(struct super_block *sb, size_t inode)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct buffer_head *bh = NULL;

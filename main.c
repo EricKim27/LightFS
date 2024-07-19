@@ -25,7 +25,7 @@ static void lightfs_put_super(struct super_block *sb)
     sbi->free_data = mem_sbi->free_data;
     sbi->free_inode = mem_sbi->free_inode;
     
-    lightfs_free_bitmap(mem_sbi);
+    lightfs_free_bitmap(sb);
     mark_buffer_dirty(sbh);
     brelse(sbh);
     kfree(mem_sbi);
