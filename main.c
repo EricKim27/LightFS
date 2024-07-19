@@ -13,6 +13,24 @@ const struct super_operations lightfs_s_ops = {
     .sync_fs = lightfs_syncfs,
 };
 
+static void lightfs_put_super(struct super_block *sb)
+{
+    struct buffer_head *sbh = sb_bread(sb, 1);
+    struct lightfs_superblock *mem_sbi = sb->s_fs_info;
+    struct lightfs_superblock *sbi = (struct lightfs_superblock *)sbh->b_data;
+
+    sbi->error = 0;
+    sbi->data_block_num = mem_sbi->data_block_num;
+    sbi->inode_block_num = mem_sbi->inode_block_num;
+    sbi->free_data = mem_sbi->free_data;
+    sbi->free_inode = mem_sbi->free_inode;
+    
+    lightfs_free_bitmap(mem_sbi);
+    mark_buffer_dirty(sbh);
+    brelse(sbh);
+    kfree(mem_sbi);
+}
+
 static struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,

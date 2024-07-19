@@ -52,6 +52,24 @@ struct buffer_head **get_block(struct super_block *sb, __u32 num)
 
     return bh;
 }
+
+//additional cleanup job for block
+void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi)
+{
+    int blk_num = sbi->block_size / LIGHTFS_LOGICAL_BS;
+    unsigned int i;
+    for(i = 0; i<blk_num; i++) {
+        mark_buffer_dirty(bh[i]);
+        brelse(bh[i]);
+    }
+}
+
+static int *lightfs_open(struct inode *inode, struct file *file)
+{
+    struct lightfs_inode_info *i_info = inode->i_private;
+
+    return 0;
+}
 static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, loff_t *ppos)
 {
     struct inode *inode = file->f_mapping->host;

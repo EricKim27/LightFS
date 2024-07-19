@@ -211,21 +211,12 @@ static int lightfs_create(struct mnt_idmap *id,
     
     memcpy(dentry_location, dentry_from, sizeof(struct lightfs_dentry));
 
-
-    for(i = 0; i<4; i++)
-    {
-        mark_buffer_dirty(bh[i]);
-    }
     mark_buffer_dirty(ibh);
     mark_buffer_dirty(bbh);
 
-    for(i = 0; i<4; i++)
-    {
-        brelse(bh[i]);
-    }
     brelse(ibh);
     brelse(bbh);
-
+    block_cleanup(bh, sbi);
     kfree(dentry_from);
     return 0;
 }

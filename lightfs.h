@@ -92,6 +92,7 @@ struct lightfs_d_head {
     char padding[56];
 };
 int lightfs_get_first_bit(struct super_block *sb);
+void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);
 
 static int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 static void lightfs_put_super(struct super_block *sb);
