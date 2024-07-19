@@ -67,7 +67,7 @@ void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi)
 static int *lightfs_open(struct inode *inode, struct file *file)
 {
     struct lightfs_inode_info *i_info = inode->i_private;
-
+    //TODO: How to get the fpos?
     return 0;
 }
 static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, loff_t *ppos)
