@@ -52,7 +52,7 @@ struct lightfs_superblock {
     __u16 error;
     void* inode_bmap;
     void* data_bitmap;
-    char padding[926];
+    char padding[930];
 };
 
 //This is the inode structure for the filesystem. It is in 256 bytes in size.
@@ -89,7 +89,7 @@ struct lightfs_dentry {
 struct lightfs_d_head {
     __u64 magic;
     __u64 item_num;
-    char padding[56];
+    char padding[48];
 };
 int lightfs_get_first_bit(struct super_block *sb);
 void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);
