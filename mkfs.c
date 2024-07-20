@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <time.h>
 
 #define FILL_FS_BYTES 0x22
+char bytes = FILL_FS_BYTES;
 
 struct lightfs_superblock {
     uint64_t inode_block_num;
@@ -52,3 +56,27 @@ struct lightfs_d_head {
 };
 
 //TODO: make a block and inode number calculation mechanism
+
+uint64_t partition_size(uint64_t a)
+{
+    return 2048 + (a / 1024) * 1024 + 1024 + (a / 1024) * 1024 + 1024 + ((256 * a) / 1024) * 1024 + 1024 + 4096 * a;
+}
+
+int fill_disk(int fd) //TODO: Think of a way to fill the disk with 22 22 22 ...
+{
+    struct stat st;
+    if(fstat(fd, &st) == -1){
+        perror("Failed to get fstat: ");
+        return -1;
+    }
+
+    int *bytes_to_write = &bytes;
+    size_t i;
+    for(i=0; i<st.st_size; i++){
+        if(write(fd, bytes_to_write, sizeof(bytes)) < 0) {
+            perror("write error!: ");
+            return -2;
+        }
+    }
+    return 0;
+}
