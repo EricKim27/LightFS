@@ -53,7 +53,38 @@ struct buffer_head **get_block(struct super_block *sb, __u32 num)
     return bh;
 }
 
-//additional cleanup job for block
+char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi)
+{
+    char *buf=(char *)kmalloc(sbi->block_size, GFP_KERNEL);
+    unsigned int i;
+
+    for(i=0; i<(sbi->block_size \ LIGHTFS_LOGICAL_BS); i++){
+        memcpy(buf+(i*1024), bh[i]->b_data, LIGHTFS_LOGICAL_BS);
+        printk(KERN_INFO "Copying logical block %d to buffer\n", i);
+    }
+    printk(KERN_INFO "Copy of one block complete\n");
+    for(i=0; i<(sbi->block_size / LIGHTFS_LOGICAL_BS); i++){
+        brelse(bh[i]);
+    }
+
+    return buf;
+}
+
+int sync_block(struct lightfs_superblock *sbi, struct buffer_head **bh, char *buf){
+    if (!sbi || !bh || !buf) return -EINVAL;
+
+    unsigned int i;
+    for(i=0; i<(sbi->block_size / LIGHTFS_LOGICAL_BS); i++)
+    {
+        memcpy(bh[i]->b_data, buf+(i*1024), LIGHTFS_LOGICAL_BS);
+        printk(KERN_INFO "syncing logical block %d with disk\n", i);
+        mark_buffer_dirty(bh[i]);
+        brelse(bh[i]);
+    }
+    return 0;
+}
+
+//additional cleanup job for block, soon to change & deprecated
 void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi)
 {
     int blk_num = sbi->block_size / LIGHTFS_LOGICAL_BS;
