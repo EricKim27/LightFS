@@ -58,7 +58,7 @@ char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi)
     char *buf=(char *)kmalloc(sbi->block_size, GFP_KERNEL);
     unsigned int i;
 
-    for(i=0; i<(sbi->block_size \ LIGHTFS_LOGICAL_BS); i++){
+    for(i=0; i<(sbi->block_size / LIGHTFS_LOGICAL_BS); i++){
         memcpy(buf+(i*1024), bh[i]->b_data, LIGHTFS_LOGICAL_BS);
         printk(KERN_INFO "Copying logical block %d to buffer\n", i);
     }
