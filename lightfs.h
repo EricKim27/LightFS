@@ -55,7 +55,12 @@ struct lightfs_superblock {
     char padding[930];
 };
 
-//This is the inode structure for the filesystem. It is in 256 bytes in size.
+/*
+ - Inode structure
+ This is the inode structure for this filesystem. It is in 256 bytes in size.
+ This will be revised to only have one block number. That one block will store the number
+ of blocks that will actually contain the data.
+ */
 struct lightfs_inode {
     __u32 i_mode;
     __u32 i_uid;
@@ -71,7 +76,13 @@ struct lightfs_inode {
     char padding[116];
 };
 
-//inode container
+/*
+ - inode container
+ 
+ This structure will be revised, and will have a pointer to the buffer containing data,
+ and the number of the data block that will store the numbers of the block that will store
+ the actual data of the file.
+ */
 struct lightfs_inode_info {
     struct inode vfs_inode;
     __u32 blocks;
@@ -86,6 +97,7 @@ struct lightfs_dentry {
     __u64 inode;
 };
 
+//header for directory block
 struct lightfs_d_head {
     __u64 magic;
     __u64 item_num;

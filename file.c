@@ -103,7 +103,14 @@ void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi)
 static int *lightfs_open(struct inode *inode, struct file *file)
 {
     struct lightfs_inode_info *i_info = inode->i_private;
-    //TODO: How to get the fpos?
+    /*
+     - How this operation will work
+
+     It's going to look for the file's data in the cache, and if there's no entry,
+     And update the in-memory inode structure to inform that this file is open.
+     Then, it'll check the permission to see if the person trying to access it has permission.
+     And it'll return 0 if successful.
+    */
     return 0;
 }
 static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, loff_t *ppos)
