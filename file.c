@@ -2,6 +2,9 @@
 #include <linux/buffer_head.h>
 #include <linux/slab.h>
 
+/* plans to change this function: return a pointer to buffer containing data
+ * and then later use sync_block to sync the data to the disk.
+ */
 struct buffer_head **get_block(struct super_block *sb, __u32 num)
 {
     struct buffer_head **bh = NULL;
