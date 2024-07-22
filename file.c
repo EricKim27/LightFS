@@ -5,7 +5,7 @@
 /* plans to change this function: return a pointer to buffer containing data
  * and then later use sync_block to sync the data to the disk.
  */
-struct buffer_head **get_block(struct super_block *sb, __u32 num)
+char *get_block(struct super_block *sb, __u32 num)
 {
     struct buffer_head **bh = NULL;
     struct lightfs_superblock *sbi = sb->s_fs_info;
@@ -14,17 +14,8 @@ struct buffer_head **get_block(struct super_block *sb, __u32 num)
     size_t data_bmap_no;
     size_t inode_lb_no;
 
-    if((sbi->inode_block_num % LIGHTFS_LOGICAL_BS) == 0) {
-        inode_bmap_no = sbi->inode_block_num / LIGHTFS_LOGICAL_BS;
-    } else {
-        inode_bmap_no = sbi->inode_block_num / LIGHTFS_LOGICAL_BS + 1;
-    }
-
-    if((sbi->data_block_num % LIGHTFS_LOGICAL_BS) == 0) {   
-        data_bmap_no = sbi->data_block_num / LIGHTFS_LOGICAL_BS;
-    } else {
-        data_bmap_no = sbi->data_block_num / LIGHTFS_LOGICAL_BS + 1;
-    }
+    inode_bmap_no = sbi->inode_block_num / LIGHTFS_LOGICAL_BS + 1;
+    data_bmap_no = sbi->data_block_num / LIGHTFS_LOGICAL_BS + 1;
 
     if((sbi->inode_block_num % 4) == 0) {
         inode_lb_no = sbi->inode_block_num / 4;
@@ -35,7 +26,7 @@ struct buffer_head **get_block(struct super_block *sb, __u32 num)
     size_t db_offset = 1 + data_bmap_no + inode_bmap_no + inode_lb_no + (num * 4);
     //TODO: validate the calculation method
 
-    void *buf = kmalloc(sbi->block_size, GFP_KERNEL); 
+    char *buf = (char *)kmalloc(sbi->block_size, GFP_KERNEL); 
     if(!buf)
     {
         return NULL;
@@ -52,8 +43,9 @@ struct buffer_head **get_block(struct super_block *sb, __u32 num)
             return NULL;
         }
     }
+    buf = blkcpy(bh, sbi);
 
-    return bh;
+    return buf;
 }
 
 char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi)
@@ -73,17 +65,27 @@ char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi)
     return buf;
 }
 
-int sync_block(struct lightfs_superblock *sbi, struct buffer_head **bh, char *buf){
-    if (!sbi || !bh || !buf) return -EINVAL;
+int sync_block(struct super_block *sb, __u32 block_no, char *buf)
+{
+    if (!sb || !block_no || !buf) return -EINVAL;
 
     unsigned int i;
-    for(i=0; i<(sbi->block_size / LIGHTFS_LOGICAL_BS); i++)
+    struct buffer_head **bh;
+    bh = get_block_bh(bh, block_no);
+    if(!bh)
     {
+        return -EIO;
+    }
+    
+    for(i=0; i<(sbi->block_size / LIGHTFS_LOGICAL_BS); i++) {
+
         memcpy(bh[i]->b_data, buf+(i*1024), LIGHTFS_LOGICAL_BS);
         printk(KERN_INFO "syncing logical block %d with disk\n", i);
+
         mark_buffer_dirty(bh[i]);
         brelse(bh[i]);
     }
+    kfree(buf);
     return 0;
 }
 
@@ -116,4 +118,38 @@ static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, lof
     //TODO: think of a way to read 4 logical blocks
 
     return 0;
+}
+struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
+{
+    struct buffer_head **bh = NULL;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    int logical_per_physical = (sbi->block_size / LIGHTFS_LOGICAL_BS);
+    size_t inode_bmap_no;
+    size_t data_bmap_no;
+    size_t inode_lb_no;
+
+    inode_bmap_no = sbi->inode_block_num / LIGHTFS_LOGICAL_BS + 1;
+    data_bmap_no = sbi->data_block_num / LIGHTFS_LOGICAL_BS + 1;
+
+    if((sbi->inode_block_num % 4) == 0) {
+        inode_lb_no = sbi->inode_block_num / 4;
+    } else {
+        inode_lb_no = sbi->inode_block_num / 4 + 1;
+    }
+
+    size_t db_offset = 1 + data_bmap_no + inode_bmap_no + inode_lb_no + (num * 4);
+    //TODO: validate the calculation method
+
+    unsigned int i;
+
+    for(i = 0; i<logical_per_physical; i++)
+    {
+        bh[i] = sb_bread(sb, db_offset+i);
+
+        if(!bh)
+        {
+            return NULL;
+        }
+    }
+    return bh;
 }

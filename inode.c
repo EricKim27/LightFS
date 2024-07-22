@@ -5,6 +5,7 @@
 #include <linux/dcache.h>
 #include <linux/string.h>
 
+//TODO: need to fix all the buffer head variable to fit the newly revised get_block() function.
 struct inode_operations lightfs_inode_operations;
 
 static const struct file_operations lightfs_file_operations;
@@ -33,6 +34,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
         printk(KERN_ERR "Error while reading inode,\n");
         goto error;
     }
+    //fill inode
     raw_inode = (struct lightfs_inode *)(bh->b_data + (inode_location_inlb * sizeof(struct lightfs_inode)));
     i_gid_write(mem_inode, raw_inode->i_gid);
     i_uid_write(mem_inode, raw_inode->i_uid);
@@ -72,6 +74,7 @@ static struct dentry *lightfs_lookup(struct inode *dir,
 {
     struct dentry *found_dentry;
     struct super_block *sb = dir->i_sb;
+    struct inode *i_found_dentry;
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct lightfs_inode_info *ci = dir->i_private;
     struct lightfs_dentry *dentry_info = NULL;
@@ -86,33 +89,28 @@ static struct dentry *lightfs_lookup(struct inode *dir,
     void *raw_dir = kmalloc(ci->blocks * sbi->block_size, GFP_KERNEL);
     if(!raw_dir)
     {
-        printk(KERN_ERR "Error while allocating area for dentry_lookup: line 77 @ inode.c\n");
+        printk(KERN_ERR "Error while allocating area for dentry_lookup: line 89 @ inode.c\n");
         kfree(raw_dir);
         return NULL;
     }
     //directory block has the maximum block of 12 blocks.
-    for(i=0; i<ci->blocks && i<12; i++)
+    char *dir_blk = (char *)kmalloc(ci->blocks * sbi->block_size, GFP_KERNEL);
+    if(dir_blk == NULL)
     {
-        struct buffer_head **bh = NULL;
-        bh = get_block(sb, ci->block[i]);
-        void *blkbuf = kmalloc(sizeof(sbi->block_size), GFP_KERNEL);
-        if(bh == NULL)
-        {
-            printk(KERN_ERR "Error while get_block() function: line 87 @ inode.c\n");
-        }
+        printk(KERN_ERR "Error while allocating area for directory: line 94 @ inode.c\n");
+        return -EIO;
+    }
+    char *buf;
 
-        for(j=0; j<(sbi->block_size / LIGHTFS_LOGICAL_BS); j++)
+    for(i=0; i<ci->blocks && i<12; i++)
+    {   
+        buf = get_block(sb, ci->block[i]);
+        if(buf == NULL)
         {
-            memcpy(blkbuf + (j*sbi->block_size), bh[i]->b_data + (i * LIGHTFS_LOGICAL_BS), LIGHTFS_LOGICAL_BS);
+            printk(KERN_ERR "Error while get_block() function: line 107 @ inode.c\n");
         }
-
-        memcpy(raw_dir + (i*sbi->block_size), blkbuf, sbi->block_size);
-        memset(blkbuf, 0, sbi->block_size);
-
-        for(j=0; j<(sbi->block_size / LIGHTFS_LOGICAL_BS); j++)
-        {
-            brelse(bh[j]);
-        }
+        memcpy(dir_blk + (i * sbi->block_size), buf, sbi->block_size);
+        kfree(buf);
     }
 
     dentry_info = (struct lightfs_dentry *)(raw_dir + sizeof(struct lightfs_d_head));
@@ -122,7 +120,8 @@ static struct dentry *lightfs_lookup(struct inode *dir,
         if(strncmp(dentry_info->filename, dentry->d_name.name, sizeof(dentry_info->filename)))
         {
             //TODO: return dentry job
-            
+            i_found_dentry = lightfs_iget(sb, dentry_info->inode); //get the found dentry's inode
+            d_instantiate(found_dentry, i_found_dentry); //assosiate dentry with its inode
             kfree(raw_dir);
             return found_dentry;
         }
@@ -145,7 +144,6 @@ static int lightfs_create(struct mnt_idmap *id,
     struct inode *inode;
     struct lightfs_inode *inode_i;
     struct lightfs_inode_info *ii;
-    struct buffer_head **bh;
     struct buffer_head *ibh;
     struct buffer_head *bbh;
     struct lightfs_d_head *dh;
@@ -175,6 +173,7 @@ static int lightfs_create(struct mnt_idmap *id,
     inode_i->i_gid = inode->i_gid.val;
     inode_i->i_uid = inode->i_uid.val;
     inode_i->i_size = inode->i_size;
+    //the bottom three line will be changed due to changes in design of storing data block numbers.
     memcpy(inode_i->block, ii->block, sizeof(__u32) * 12);
     memcpy(inode_i->ind_blk, ii->ind_blk, sizeof(__u32) * 4);
     memcpy(inode_i->d_ind_blk, ii->d_ind_blk, sizeof(__u32) * 2);
@@ -183,24 +182,25 @@ static int lightfs_create(struct mnt_idmap *id,
     strncpy(dentry_from->filename, dentry->d_name.name, sizeof(dentry_from->filename) - 1);
     dentry_from->filename[sizeof(dentry_from->filename) - 1] = '\0';
     dentry_from->inode = dentry->d_inode->i_ino;
-    bh = get_block(sb, ii->block[0]);
+    char *buf;
+    buf = get_block(sb, ii->block[0]);
     dh = (struct lightfs_d_head *)bh[0]->b_data;
 
     size_t block_num = dh->item_num+1 / 64;
     size_t block_shift = dh->item_num+1 % 64;
     if(S_ISDIR(inode->i_mode)) {
-        init_dir(sb, inode, dir);
-        if(!init_dir)
-            printk(KERN_ERR "Error at line 192 @ inode.c\n");
+        int ret = init_dir(sb, inode, dir);
+        if(ret != 0)
+            printk(KERN_ERR "Error at line 190 @ inode.c\n");
     }
     if(block_shift == 0) {
-        bh = get_block(sb, ii->block[block_num-1]);
+        buf = get_block(sb, ii->block[block_num-1]);
 
     } else {
-        bh = get_block(sb, ii->block[block_num]);
+        buf = get_block(sb, ii->block[block_num]);
     }
-    if(!bh) {
-        printk(KERN_ERR "Error at line 163 @ inode.c\n");
+    if(buf == NULL) {
+        printk(KERN_ERR "Error at line 199 @ inode.c\n");
         return -EIO;
     }
     
@@ -216,7 +216,7 @@ static int lightfs_create(struct mnt_idmap *id,
 
     brelse(ibh);
     brelse(bbh);
-    block_cleanup(bh, sbi);
+    sync_block(sb, ii->block[0], buf);
     kfree(dentry_from);
     return 0;
 }

@@ -10,11 +10,11 @@ int lightfs_iterate_dir(struct inode *dir, struct dentry *dentry)
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct lightfs_dentry *p_dentry = NULL;
     struct lightfs_d_head *head = NULL;
-    struct buffer_head **bh = NULL;
     struct lightfs_inode_info *i_info = dir->i_private;
     unsigned int lb, pb;
+    char *buf;
     
-    bh = get_block(sb, i_info->block[0]);
+    buf = get_block(sb, i_info->block[0]);
     if(!bh)
     {
         printk(KERN_ERR "Error on dir.c line 17");
@@ -31,29 +31,32 @@ int lightfs_iterate_dir(struct inode *dir, struct dentry *dentry)
         {
             p_dentry = (struct lightfs_dentry *)bh[lb];
             if(strncmp(dentry->d_name.name, p_dentry->filename, sizeof(p_dentry->filename)) == 0){
+                kfree(buf);
                 return lb+pb;
             }
         }
     }
     
+    kfree(buf);
     return -ENOENT;
 }
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
 {
-    struct buffer_head **bh;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
     struct lightfs_dentry *dentry;
     struct lightfs_inode_info *i_info = dir->i_private;
     char *my_name = ".";
     char *parent_name = "..";
+    char *buf;
     __u32 blk_num = i_info->block[0];
-    bh = get_block(sb, blk_num);
-    if(!bh)
+    buf = get_block(sb, blk_num);
+    if(buf == NULL)
     {
         printk(KERN_ERR "error at line 49 @ dir.c\n");
         return -EIO;
     }
-    dentry = (struct lightfs_dentry *)(bh[0]->b_data);
+    dentry = (struct lightfs_dentry *)(buf);
     strncpy(dentry->filename, my_name, strlen(my_name) + 1);
     dentry->inode = dir->i_ino;
     dentry++;
@@ -61,11 +64,6 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     strncpy(dentry->filename, parent_name, strlen(parent_name) + 1);
     dentry->inode = parent->i_ino;
 
-    mark_buffer_dirty(bh[0]);
-    unsigned int i;
-    for(i=0; i<4; i++)
-    {
-        brelse(bh[i]);
-    }
+    sync_block(sb, i_info->block[0], buf);
     return 0;
 }
