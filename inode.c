@@ -184,7 +184,7 @@ static int lightfs_create(struct mnt_idmap *id,
     dentry_from->inode = dentry->d_inode->i_ino;
     char *buf;
     buf = get_block(sb, ii->block[0]);
-    dh = (struct lightfs_d_head *)bh[0]->b_data;
+    dh = (struct lightfs_d_head *) buf;
 
     size_t block_num = dh->item_num+1 / 64;
     size_t block_shift = dh->item_num+1 % 64;
@@ -203,11 +203,11 @@ static int lightfs_create(struct mnt_idmap *id,
         printk(KERN_ERR "Error at line 199 @ inode.c\n");
         return -EIO;
     }
-    
+    //TODO: change the function to fit the revised get_block
     size_t dentry_tail = (dh->item_num+1) - 64 * (block_num - 1);
     size_t lb_num = block_shift / 14;
     size_t lb_shift = block_shift % 14;
-    dentry_location = &((struct lightfs_dentry *)bh[lb_num]->b_data)[lb_shift+1];
+    dentry_location = &((struct lightfs_dentry *)buf)[lb_shift+1];
     
     memcpy(dentry_location, dentry_from, sizeof(struct lightfs_dentry));
 
