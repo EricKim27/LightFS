@@ -6,7 +6,12 @@
 #include <linux/string.h>
 
 //TODO: need to fix all the buffer head variable to fit the newly revised get_block() function.
-struct inode_operations lightfs_inode_operations;
+static const struct inode_operations lightfs_inode_operations = {
+    .lookup = &lightfs_lookup,
+    .create = &lightfs_create,
+    .link = &lightfs_link,
+    .mkdir = &lightfs_mkdir,
+};
 
 static const struct file_operations lightfs_file_operations;
 static const struct file_operations lightfs_link_operations;
@@ -60,6 +65,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
         //TODO: define operations
         mem_inode->i_fop = &lightfs_link_operations;
      }
+     mem_inode->i_op = &lightfs_inode_operations;
     brelse(bh);
     unlock_new_inode(mem_inode);
 
