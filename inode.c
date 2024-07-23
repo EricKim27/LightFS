@@ -150,8 +150,8 @@ static int lightfs_create(struct mnt_idmap *id,
     struct inode *inode;
     struct lightfs_inode *inode_i;
     struct lightfs_inode_info *ii;
-    struct buffer_head *ibh;
-    struct buffer_head *bbh;
+    struct buffer_head *ibh; //buffer head for inode
+    struct buffer_head *bbh; //buffer head for bitmap
     struct lightfs_d_head *dh;
     inode = new_inode(sb);
     unsigned int i;
@@ -192,7 +192,7 @@ static int lightfs_create(struct mnt_idmap *id,
     buf = get_block(sb, ii->block[0]);
     dh = (struct lightfs_d_head *) buf;
 
-    size_t block_num = dh->item_num+1 / 64;
+    size_t block_num = dh->item_num+1 / 64; //What was this for?
     size_t block_shift = dh->item_num+1 % 64;
     if(S_ISDIR(inode->i_mode)) {
         int ret = init_dir(sb, inode, dir);
@@ -211,17 +211,15 @@ static int lightfs_create(struct mnt_idmap *id,
     }
     //TODO: change the function to fit the revised get_block
     size_t dentry_tail = (dh->item_num+1) - 64 * (block_num - 1);
-    size_t lb_num = block_shift / 14;
-    size_t lb_shift = block_shift % 14;
-    dentry_location = &((struct lightfs_dentry *)buf)[lb_shift+1];
+    dentry_location = ((struct lightfs_dentry *)buf + dh->item_num + 2);
     
     memcpy(dentry_location, dentry_from, sizeof(struct lightfs_dentry));
 
     mark_buffer_dirty(ibh);
     mark_buffer_dirty(bbh);
 
-    brelse(ibh);
-    brelse(bbh);
+    brelse(ibh);//free the inode buffer head
+    brelse(bbh);//free the bitmap buffer head
     sync_block(sb, ii->block[0], buf);
     kfree(dentry_from);
     return 0;
