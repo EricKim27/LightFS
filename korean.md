@@ -166,4 +166,3 @@ simplefs project(National Cheng Kung University, Taiwan) - [https://github.com/s
 
 linux vfs documentation - [https://www.kernel.org/doc/html/latest/filesystems/vfs.html](https://www.kernel.org/doc/html/latest/filesystems/vfs.html)
 
-[코드 분석](https://www.notion.so/afc492e98ea045c3b1e6a8044f1c741a?pvs=21)
