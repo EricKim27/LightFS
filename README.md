@@ -7,7 +7,7 @@ I'm still learning about file systems, so it'll take some time to complete it.
 
 [to do list](todo.md)
 
-[Korean Documentation](https://erikkim27.notion.site/LightFS-0971ce0a06a648a8b92a4cdf36e7749d)
+[Korean Documentation](korean.md)
 
 Contributions to this code are welcome.
 
