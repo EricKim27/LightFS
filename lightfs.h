@@ -107,32 +107,16 @@ int lightfs_get_first_bit(struct super_block *sb);
 int sync_block(struct super_block *sb, __u32 block_no, char *buf);
 void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);
 
-static int lightfs_fill_super(struct super_block *sb, void *data, int silent);
-static void lightfs_put_super(struct super_block *sb);
-static struct dentry *lightfs_mount(struct file_system_type *fs_type,
-                              int flags,
-                              const char *dev_name,
-                              void *data);
-
-static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf);
-static int lightfs_syncfs(struct super_block *sb, int wait);
-static void lightfs_kill_super(struct super_block *sb);
+//need not to be defined in headers?
 
 int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
 
 
 char *get_block(struct super_block *sb, __u32 num);
+char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi);
 struct buffer_head **get_block_bh(struct super_block *sb, __u32 num);
 
 struct inode *lightfs_iget(struct super_block *sb, size_t inode);
-static struct dentry *lightfs_lookup(struct inode *dir,
-                            struct dentry *dentry,
-                            unsigned int flags);
-static int lightfs_create(struct mnt_idmap *id,
-                       struct inode *dir,
-                       struct dentry *dentry,
-                       umode_t mode,
-                       bool excl);
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);

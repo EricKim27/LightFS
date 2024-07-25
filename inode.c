@@ -6,17 +6,11 @@
 #include <linux/string.h>
 
 //TODO: need to fix all the buffer head variable to fit the newly revised get_block() function.
-static const struct inode_operations lightfs_inode_operations = {
-    .lookup = &lightfs_lookup,
-    .create = &lightfs_create,
-    .link = &lightfs_link,
-    .mkdir = &lightfs_mkdir,
-};
 
 static const struct file_operations lightfs_file_operations;
 static const struct file_operations lightfs_link_operations;
 static const struct file_operations lightfs_dir_operations;
-
+static const struct inode_operations lightfs_inode_operations;
 //getting inode structure from disk
 struct inode *lightfs_iget(struct super_block *sb, size_t inode)
 {
@@ -104,7 +98,7 @@ static struct dentry *lightfs_lookup(struct inode *dir,
     if(dir_blk == NULL)
     {
         printk(KERN_ERR "Error while allocating area for directory: line 94 @ inode.c\n");
-        return -EIO;
+        return NULL;
     }
     char *buf;
 
@@ -228,7 +222,9 @@ static int lightfs_mkdir(struct mnt_idmap *id, struct inode *dir, struct dentry 
 {
     return lightfs_create(id, dir, dentry, mode | S_IFDIR, 0);
 }
-static int lightfs_link(struct mnt_idmap *id, struct inode *dir, struct dentry *dentry, umode_t mode)
-{
-    return lightfs_create(id, dir, dentry, mode | S_IFLNK, 0);
-}
+
+static const struct inode_operations lightfs_inode_operations = {
+    .lookup = lightfs_lookup,
+    .create = lightfs_create,
+    .mkdir = lightfs_mkdir,
+};

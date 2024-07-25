@@ -71,7 +71,8 @@ int sync_block(struct super_block *sb, __u32 block_no, char *buf)
 
     unsigned int i;
     struct buffer_head **bh;
-    bh = get_block_bh(bh, block_no);
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    bh = get_block_bh(sb, block_no);
     if(!bh)
     {
         return -EIO;

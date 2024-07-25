@@ -7,11 +7,7 @@
 #include <linux/blkdev.h>
 #include "lightfs.h"
 
-const struct super_operations lightfs_s_ops = {
-    .put_super = lightfs_put_super,
-    .statfs = lightfs_statfs,
-    .sync_fs = lightfs_syncfs,
-};
+const struct super_operations lightfs_s_ops;
 
 static void lightfs_put_super(struct super_block *sb)
 {
@@ -31,19 +27,6 @@ static void lightfs_put_super(struct super_block *sb)
     kfree(mem_sbi);
 }
 
-static struct dentry *lightfs_mount(struct file_system_type *fs_type,
-                              int flags,
-                              const char *dev_name,
-                              void *data)
-{
-    struct dentry *dntry = mount_bdev(fs_type, flags, dev_name, data, lightfs_fill_super);
-    if(IS_ERR(dntry))
-        pr_err("mount failure at %s\n", dev_name);
-    else
-        pr_info("mount success: %s\n", dev_name);
-
-    return dntry;
-}
 static int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 {
     struct buffer_head *sbh = NULL;
@@ -119,6 +102,21 @@ release:
     brelse(sbh);
     return ret;
 }
+
+static struct dentry *lightfs_mount(struct file_system_type *fs_type,
+                              int flags,
+                              const char *dev_name,
+                              void *data)
+{
+    struct dentry *dntry = mount_bdev(fs_type, flags, dev_name, data, lightfs_fill_super);
+    if(IS_ERR(dntry))
+        pr_err("mount failure at %s\n", dev_name);
+    else
+        pr_info("mount success: %s\n", dev_name);
+
+    return dntry;
+}
+
 static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
     struct super_block *sb = dentry->d_sb;
@@ -172,6 +170,13 @@ static int lightfs_syncfs(struct super_block *sb, int wait)
     sync_blockdev(sb->s_bdev);
     return 0;
 }
+
+const struct super_operations lightfs_s_ops = {
+    .put_super = lightfs_put_super,
+    .statfs = lightfs_statfs,
+    .sync_fs = lightfs_syncfs,
+};
+
 static void __exit lightfs_exit(void)
 {
     int ret = unregister_filesystem(&lightfs_fs_type);
