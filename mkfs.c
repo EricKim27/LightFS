@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <time.h>
 

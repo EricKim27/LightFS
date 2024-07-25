@@ -108,7 +108,7 @@ int sync_block(struct super_block *sb, __u32 block_no, char *buf);
 void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);
 
 //need not to be defined in headers?
-
+int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
 

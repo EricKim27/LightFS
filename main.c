@@ -5,6 +5,7 @@
 #include <linux/statfs.h>
 #include <linux/fs.h>
 #include <linux/blkdev.h>
+#include <linux/writeback.h>
 #include "lightfs.h"
 
 const struct super_operations lightfs_s_ops;
@@ -27,7 +28,7 @@ static void lightfs_put_super(struct super_block *sb)
     kfree(mem_sbi);
 }
 
-static int lightfs_fill_super(struct super_block *sb, void *data, int silent)
+int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 {
     struct buffer_head *sbh = NULL;
     struct lightfs_superblock *chksb = NULL;
@@ -116,7 +117,23 @@ static struct dentry *lightfs_mount(struct file_system_type *fs_type,
 
     return dntry;
 }
+static void lightfs_evict_inode(struct inode *inode)
+{
+    struct super_block *sb = inode->i_sb;
+    if(inode->i_state & I_DIRTY) {
+        struct writeback_control wbc = {
+            .sync_mode = WB_SYNC_ALL,
+            .nr_to_write = 1,   
+        };
+        sb->s_op->write_inode(inode, &wbc);
+    }
 
+    if(inode->i_private) {
+        kfree(inode->i_private);
+    }
+
+    generic_drop_inode(inode);
+}
 static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
     struct super_block *sb = dentry->d_sb;
@@ -175,6 +192,7 @@ const struct super_operations lightfs_s_ops = {
     .put_super = lightfs_put_super,
     .statfs = lightfs_statfs,
     .sync_fs = lightfs_syncfs,
+    .evict_inode = lightfs_evict_inode,
 };
 
 static void __exit lightfs_exit(void)

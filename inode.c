@@ -211,7 +211,7 @@ static int lightfs_create(struct mnt_idmap *id,
 
     mark_buffer_dirty(ibh);
     mark_buffer_dirty(bbh);
-
+    mark_inode_dirty(inode);
     brelse(ibh);//free the inode buffer head
     brelse(bbh);//free the bitmap buffer head
     sync_block(sb, ii->block[0], buf);
