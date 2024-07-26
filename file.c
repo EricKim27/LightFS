@@ -5,6 +5,7 @@
 /* plans to change this function: return a pointer to buffer containing data
  * and then later use sync_block to sync the data to the disk.
  */
+//going to implement readpage and writepage here.
 char *get_block(struct super_block *sb, __u32 num)
 {
     struct buffer_head **bh = NULL;
@@ -160,4 +161,24 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
         }
     }
     return bh;
+}
+int lightfs_readpage(struct file *file, struct page *page) {
+    struct inode *inode = file->f_mapping->host;
+    struct lightfs_inode_info *ci = inode->i_private;
+    struct super_block *sb = inode->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    char *kaddr;
+
+    loff_t offset = page_offset(page);
+    size_t bytes_to_read = min_t(size_t, PAGE_SIZE, i_size_read(inode) - offset);
+    size_t page_location = offset % sbi->block_size;
+    __u32 block_start = offset / 4096;
+    uint num_blk_to_read;
+    if(bytes_to_read % sbi->block_size == 0)
+        num_blk_to_read = 1;
+    else
+        num_blk_to_read = 2;    
+    //At max, this code should read two blocks. 
+    //TODO: Revise ondisk inode structure, and then think of a block reading mechanism.
+    return 0;
 }

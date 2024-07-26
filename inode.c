@@ -7,9 +7,6 @@
 
 //TODO: need to fix all the buffer head variable to fit the newly revised get_block() function.
 
-static const struct file_operations lightfs_file_operations;
-static const struct file_operations lightfs_link_operations;
-static const struct file_operations lightfs_dir_operations;
 static const struct inode_operations lightfs_inode_operations;
 //getting inode structure from disk
 struct inode *lightfs_iget(struct super_block *sb, size_t inode)
@@ -58,6 +55,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
      } else if(S_ISLNK(mem_inode->i_mode)){
         //TODO: define operations
         mem_inode->i_fop = &lightfs_link_operations;
+
      }
      mem_inode->i_op = &lightfs_inode_operations;
     brelse(bh);

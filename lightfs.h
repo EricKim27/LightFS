@@ -103,6 +103,11 @@ struct lightfs_d_head {
     __u64 item_num;
     char padding[48];
 };
+
+extern const struct file_operations lightfs_dir_operations;
+extern const struct file_operations lightfs_file_operations;
+extern const struct file_operations lightfs_link_operations;
+
 int lightfs_get_first_bit(struct super_block *sb);
 int sync_block(struct super_block *sb, __u32 block_no, char *buf);
 void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);
