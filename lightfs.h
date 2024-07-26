@@ -70,10 +70,8 @@ struct lightfs_inode {
     struct timespec64 i_mtime;
     struct timespec64 i_ctime;
     __u32 blocks;
-    __u32 block[12];
-    __u32 ind_blk[4];
-    __u32 d_ind_blk[2];
-    char padding[116];
+    __u32 block_no_blk;
+    char padding[184];
 };
 
 /*
@@ -86,9 +84,7 @@ struct lightfs_inode {
 struct lightfs_inode_info {
     struct inode vfs_inode;
     __u32 blocks;
-    __u32 *block;
-    __u32 *ind_blk;
-    __u32 *d_ind_blk;
+    __u32 **block;
 };
 
 //dentry for lightfs
@@ -125,3 +121,4 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num);
 struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);
+__u32 lightfs_get_block_number();

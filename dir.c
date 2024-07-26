@@ -3,8 +3,6 @@
 #include <linux/buffer_head.h>
 #include <linux/string.h>
 
-//iterates through dir blocks
-
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;

@@ -30,6 +30,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
         printk(KERN_ERR "Error while reading inode,\n");
         goto error;
     }
+
     //fill inode
     raw_inode = (struct lightfs_inode *)(bh->b_data + (inode_location_inlb * sizeof(struct lightfs_inode)));
     i_gid_write(mem_inode, raw_inode->i_gid);
@@ -42,9 +43,8 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     ci->block = kmalloc(sizeof(raw_inode->block), GFP_KERNEL);
     ci->d_ind_blk = kmalloc(sizeof(raw_inode->d_ind_blk), GFP_KERNEL);
     ci->ind_blk = kmalloc(sizeof(raw_inode->ind_blk), GFP_KERNEL);
-    memcpy(ci->block, raw_inode->block, sizeof(raw_inode->block));
-    memcpy(ci->d_ind_blk, raw_inode->d_ind_blk, sizeof(raw_inode->d_ind_blk));
-    memcpy(ci->ind_blk, raw_inode->ind_blk, sizeof(raw_inode->ind_blk));
+    char *blk = get_block(sb, raw_inode->block_no_blk);
+    ci->block = (size_t *)blk;
 
      if (S_ISDIR(mem_inode->i_mode)) {
         //TODO: define operations
@@ -66,6 +66,8 @@ error:
     brelse(bh);
     return NULL;
 }
+
+//TODO: Needs to be corrected accordingly to the changed inode structure
 static struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
                             unsigned int flags)
@@ -153,7 +155,7 @@ static int lightfs_create(struct mnt_idmap *id,
     inode->i_size = 0;
     inode->__i_atime = inode->__i_mtime = inode->__i_ctime = current_time(inode);
     
-    size_t b_offset = 1 + (inode->i_ino / LIGHTFS_LOGICAL_BS) + 1;
+    size_t b_offset = 1 + (inode->i_ino / LIGHTFS_LOGICAL_BS) + 1; //This calculation method needs to change.
     size_t b_shift = inode->i_ino % LIGHTFS_LOGICAL_BS;
     bbh = sb_bread(sb, b_offset);
     bool *bmap_mark = (bool *)(bbh->b_data) + b_shift;
@@ -172,9 +174,7 @@ static int lightfs_create(struct mnt_idmap *id,
     inode_i->i_uid = inode->i_uid.val;
     inode_i->i_size = inode->i_size;
     //the bottom three line will be changed due to changes in design of storing data block numbers.
-    memcpy(inode_i->block, ii->block, sizeof(__u32) * 12);
-    memcpy(inode_i->ind_blk, ii->ind_blk, sizeof(__u32) * 4);
-    memcpy(inode_i->d_ind_blk, ii->d_ind_blk, sizeof(__u32) * 2);
+    inode_i->block_no_blk = lightfs_get_first_bit(sb);
     d_instantiate(dentry, inode);
     //add entry to block
     strncpy(dentry_from->filename, dentry->d_name.name, sizeof(dentry_from->filename) - 1);
