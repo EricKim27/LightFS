@@ -167,6 +167,8 @@ int lightfs_readpage(struct file *file, struct page *page) {
     struct lightfs_inode_info *ci = inode->i_private;
     struct super_block *sb = inode->i_sb;
     struct lightfs_superblock *sbi = sb->s_fs_info;
+    char *blk_dat;
+    char *file_dat;
     char *kaddr;
 
     loff_t offset = page_offset(page);
@@ -178,7 +180,19 @@ int lightfs_readpage(struct file *file, struct page *page) {
         num_blk_to_read = 1;
     else
         num_blk_to_read = 2;    
-    //At max, this code should read two blocks. 
-    //TODO: Revise ondisk inode structure, and then think of a block reading mechanism.
+    __u32 **blk_num = ci->block;
+    file_dat = (char *)kmalloc(sbi->block_size * num_blk_to_read, GFP_KERNEL);
+
+    for(int i=0; i<num_blk_to_read, i++){
+        blk_dat = get_block(sb, blk_num[i]);
+        memcpy(file_dat + i*sbi->block_size, blk_dat, sbi->block_size);
+    }
+    kaddr = kmap(page);
+    memcpy(kaddr, file_dat + (bytes_to_read & sbi->block_size), PAGE_SIZE);
+
+    kunmap(page);
+    SetPageUptodate(page);
+    unlock_page(page);
+    kfree(file_dat);
     return 0;
 }
