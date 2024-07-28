@@ -40,8 +40,8 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     mem_inode->__i_atime = raw_inode->i_atime;
     mem_inode->__i_mtime = raw_inode->i_mtime;
     mem_inode->__i_ctime = raw_inode->i_ctime;
-    char *blk = get_block(sb, raw_inode->block_no_blk);
-    ci->block = (size_t *)blk;
+    __u32 **blk = (__u32 **)get_block(sb, raw_inode->block_no_blk);
+    ci->block = blk;
 
      if (S_ISDIR(mem_inode->i_mode)) {
         //TODO: define operations
@@ -51,7 +51,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
         mem_inode->i_fop = &lightfs_file_operations;
      } else if(S_ISLNK(mem_inode->i_mode)){
         //TODO: define operations
-        mem_inode->i_fop = &lightfs_link_operations;
+        //mem_inode->i_fop = &lightfs_link_operations;
 
      }
      mem_inode->i_op = &lightfs_inode_operations;
@@ -98,10 +98,10 @@ static struct dentry *lightfs_lookup(struct inode *dir,
         return NULL;
     }
     char *buf;
-
+    __u32 **arr = ci->block;
     for(i=0; i<ci->blocks && i<12; i++)
     {   
-        buf = get_block(sb, ci->block[i]);
+        buf = get_block(sb, *arr[i]);
         if(buf == NULL)
         {
             printk(KERN_ERR "Error while get_block() function: line 107 @ inode.c\n");
@@ -178,7 +178,7 @@ static int lightfs_create(struct mnt_idmap *id,
     dentry_from->filename[sizeof(dentry_from->filename) - 1] = '\0';
     dentry_from->inode = dentry->d_inode->i_ino;
     char *buf;
-    buf = get_block(sb, ii->block[0]);
+    buf = get_block(sb, *(ii->block[0]));
     dh = (struct lightfs_d_head *) buf;
 
     size_t block_num = dh->item_num+1 / 64; //What was this for?
@@ -189,10 +189,10 @@ static int lightfs_create(struct mnt_idmap *id,
             printk(KERN_ERR "Error at line 190 @ inode.c\n");
     }
     if(block_shift == 0) {
-        buf = get_block(sb, ii->block[block_num-1]);
+        buf = get_block(sb, *(ii->block)[block_num-1]);
 
     } else {
-        buf = get_block(sb, ii->block[block_num]);
+        buf = get_block(sb, *(ii->block)[block_num]);
     }
     if(buf == NULL) {
         printk(KERN_ERR "Error at line 199 @ inode.c\n");
@@ -209,7 +209,7 @@ static int lightfs_create(struct mnt_idmap *id,
     mark_inode_dirty(inode);
     brelse(ibh);//free the inode buffer head
     brelse(bbh);//free the bitmap buffer head
-    sync_block(sb, ii->block[0], buf);
+    sync_block(sb, *(ii->block[0]), buf);
     kfree(dentry_from);
     return 0;
 }

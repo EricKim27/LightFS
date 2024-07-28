@@ -99,7 +99,7 @@ void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi)
     }
 }
 
-static int *lightfs_open(struct inode *inode, struct file *file)
+static int lightfs_open(struct inode *inode, struct file *file)
 {
     struct lightfs_inode_info *i_info = inode->i_private;
     struct super_block *sb = inode->i_sb;
@@ -112,7 +112,10 @@ static int *lightfs_open(struct inode *inode, struct file *file)
     }
     return 0;
 }
-static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, loff_t *ppos)
+static ssize_t lightfs_read(struct file *file, 
+                            char __user *buf, 
+                            size_t len, 
+                            loff_t *ppos)
 {
     struct inode *inode = file->f_mapping->host;
     struct lightfs_inode_info *ci = inode->i_private;
@@ -133,7 +136,7 @@ static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, lof
     char *dbuf = (char *)kmalloc(number_of_blocks * sbi->block_size, GFP_KERNEL);
     uint i;
     for(i=0; i<number_of_blocks; i++) {
-        block = get_block(sb, b_num[i]);
+        block = get_block(sb, *b_num[i]);
         if(block == NULL){
             kfree(kbuf);
             return -EINVAL;
@@ -156,7 +159,10 @@ static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, lof
     pos += size;
     return ret;
 }
-static ssize_t lightfs_write(struct file *dir, struct dir_context *ctx)
+static ssize_t lightfs_write(struct file *file,
+                              const char __user *buf,
+                              size_t len,
+                              loff_t *ppos)
 {
     ssize_t ret = 0;
     return ret;
@@ -214,8 +220,8 @@ int lightfs_readpage(struct file *file, struct page *page) {
     __u32 **blk_num = ci->block;
     file_dat = (char *)kmalloc(sbi->block_size * num_blk_to_read, GFP_KERNEL);
 
-    for(int i=0; i<num_blk_to_read, i++){
-        blk_dat = get_block(sb, blk_num[i]);
+    for(int i=0; i<num_blk_to_read; i++){
+        blk_dat = get_block(sb, *blk_num[i]);
         memcpy(file_dat + i*sbi->block_size, blk_dat, sbi->block_size);
     }
     kaddr = kmap(page);
@@ -233,10 +239,10 @@ static loff_t lightfs_llseek(struct file *filp, loff_t offset, int whence)
     loff_t ret = 0;
     return ret;
 }
-const struct file_operations lightfs_file_operations {
-    .open = lightfs_open,
+const struct file_operations lightfs_file_operations = {
+    .open = &lightfs_open,
     .read = lightfs_read,
     .write = lightfs_write,
-    .llseek = lightfs_llseek,
+    .llseek = &lightfs_llseek,
     .fsync = generic_file_fsync,
-}
+};

@@ -11,7 +11,7 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     char *my_name = ".";
     char *parent_name = "..";
     char *buf;
-    __u32 blk_num = i_info->block[0];
+    __u32 blk_num = *i_info->block[0];
     buf = get_block(sb, blk_num);
     if(buf == NULL)
     {
@@ -26,7 +26,7 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     strncpy(dentry->filename, parent_name, strlen(parent_name) + 1);
     dentry->inode = parent->i_ino;
 
-    sync_block(sb, i_info->block[0], buf);
+    sync_block(sb, *(i_info->block)[0], buf);
     return 0;
 }
 static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
@@ -36,7 +36,7 @@ static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
     return ret;
 }
 
-static const struct file_operations lightfs_dir_operations {
+const struct file_operations lightfs_dir_operations = {
     .owner = THIS_MODULE,
     .iterate_shared = lightfs_iterate,
-}
+};

@@ -102,7 +102,7 @@ struct lightfs_d_head {
 
 extern const struct file_operations lightfs_dir_operations;
 extern const struct file_operations lightfs_file_operations;
-extern const struct file_operations lightfs_link_operations;
+//extern const struct file_operations lightfs_link_operations;
 
 int lightfs_get_first_bit(struct super_block *sb);
 int sync_block(struct super_block *sb, __u32 block_no, char *buf);
@@ -120,4 +120,3 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num);
 struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);
-__u32 lightfs_get_block_number();
