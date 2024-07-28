@@ -40,9 +40,6 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     mem_inode->__i_atime = raw_inode->i_atime;
     mem_inode->__i_mtime = raw_inode->i_mtime;
     mem_inode->__i_ctime = raw_inode->i_ctime;
-    ci->block = kmalloc(sizeof(raw_inode->block), GFP_KERNEL);
-    ci->d_ind_blk = kmalloc(sizeof(raw_inode->d_ind_blk), GFP_KERNEL);
-    ci->ind_blk = kmalloc(sizeof(raw_inode->ind_blk), GFP_KERNEL);
     char *blk = get_block(sb, raw_inode->block_no_blk);
     ci->block = (size_t *)blk;
 

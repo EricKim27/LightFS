@@ -113,7 +113,7 @@ block of a directory
 
 - inode_operations
     - ***lookup***
-    - create -  구현 중
+    - ***create***
         - 블록 번호 할당, 부모 폴더에 디엔트리 추가, 아이노드 디스크에 작성, 파일 오퍼레이션 할당, 아이노드 비트맵 필드에 1처리, 데이터 블록 필드에 1처리
     - ***link***
         - 아이노드에 링크된 아이노드 번호를 작성하기(작성할 필드 생각해보기), 디스크에 아이노드 작성하기, 디엔트리에 링크 엔트리 작성
@@ -138,7 +138,7 @@ block of a directory
     - destroy_inode
     - write_inode
 - address_space_operations
-    - readahead
+    - ***readpage***
     - writepage
     - write_begin - generic_write_begin with modification
     - write_end - generic_write_end with modification
@@ -151,7 +151,7 @@ block of a directory
     - modify_bit_inode  - 아이노드 비트맵에서 1이나 0으로 변경
     - more
 - file_operations
-    - open
+    - ***open*** - trunication 생각해보기
         - init file
     - read
         - 아이노드에서 블록 번호 얻기 ⇒ readpage로 읽기 ⇒ 유저 버퍼로 복사 ⇒ 읽은 사이즈 리턴
