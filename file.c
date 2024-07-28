@@ -130,18 +130,30 @@ static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, lof
     
     __u32 number_of_blocks = size / sbi->block_size;
     loff_t data_shift = size % sbi->block_size;
-
+    char *dbuf = (char *)kmalloc(number_of_blocks * sbi->block_size, GFP_KERNEL);
     uint i;
     for(i=0; i<number_of_blocks; i++) {
         block = get_block(sb, b_num[i]);
         if(block == NULL){
-            kfree(kbuf)
-            return -EIO;
+            kfree(kbuf);
+            return -EINVAL;
         }
-        memcpy(kbuf + (i * sbi->block_size), block, sbi->block_size);
         kfree(block);
     }
-    //TODO: copy_to_user
+    memcpy(kbuf, dbuf + data_shift, size);
+    if (data_shift + size > number_of_blocks * sbi->block_size) {
+        kfree(kbuf);
+        kfree(dbuf);
+        return -EINVAL;
+    }
+    if(copy_to_user(buf, kbuf, size)) {
+        kfree(kbuf);
+        kfree(dbuf);
+        return -EFAULT;
+    }
+    ret += size;
+    len -= size;
+    pos += size;
     return ret;
 }
 static ssize_t lightfs_write(struct file *dir, struct dir_context *ctx)
