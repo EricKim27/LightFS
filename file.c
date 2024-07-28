@@ -144,6 +144,11 @@ static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, lof
     //TODO: copy_to_user
     return ret;
 }
+static ssize_t lightfs_write(struct file *dir, struct dir_context *ctx)
+{
+    ssize_t ret = 0;
+    return ret;
+}
 struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
 {
     struct buffer_head **bh = NULL;
@@ -211,7 +216,15 @@ int lightfs_readpage(struct file *file, struct page *page) {
     return 0;
 }
 
+static loff_t lightfs_llseek(struct file *filp, loff_t offset, int whence)
+{
+    loff_t ret = 0;
+    return ret;
+}
 const struct file_operations lightfs_file_operations {
     .open = lightfs_open,
     .read = lightfs_read,
+    .write = lightfs_write,
+    .llseek = lightfs_llseek,
+    .fsync = generic_file_fsync,
 }

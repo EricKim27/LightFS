@@ -29,3 +29,14 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     sync_block(sb, i_info->block[0], buf);
     return 0;
 }
+static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
+{
+    int ret = 0;
+
+    return ret;
+}
+
+static const struct file_operations lightfs_dir_operations {
+    .owner = THIS_MODULE,
+    .iterate_shared = lightfs_iterate,
+}
