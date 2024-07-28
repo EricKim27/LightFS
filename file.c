@@ -28,14 +28,12 @@ char *get_block(struct super_block *sb, __u32 num)
     //TODO: validate the calculation method
 
     char *buf = (char *)kmalloc(sbi->block_size, GFP_KERNEL); 
-    if(!buf)
-    {
+    if(!buf) {
         return NULL;
     }
     unsigned int i;
 
-    for(i = 0; i<logical_per_physical; i++)
-    {
+    for(i = 0; i<logical_per_physical; i++) {
         bh[i] = sb_bread(sb, db_offset+i);
 
         if(!bh)
@@ -74,8 +72,7 @@ int sync_block(struct super_block *sb, __u32 block_no, char *buf)
     struct buffer_head **bh;
     struct lightfs_superblock *sbi = sb->s_fs_info;
     bh = get_block_bh(sb, block_no);
-    if(!bh)
-    {
+    if(!bh) {
         return -EIO;
     }
     
@@ -118,15 +115,34 @@ static int *lightfs_open(struct inode *inode, struct file *file)
 static ssize_t lightfs_read(struct file *file, char __user *buf, size_t len, loff_t *ppos)
 {
     struct inode *inode = file->f_mapping->host;
+    struct lightfs_inode_info *ci = inode->i_private;
     struct address_space *mapping = inode->i_mapping;
-    struct buffer_head *bh;
-    char *kbuf;
+    struct super_block *sb = inode->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
     ssize_t ret = 0;
     loff_t pos = *ppos;
     loff_t size = i_size_read(inode);
-    //TODO: think of a way to read 4 logical blocks
+    __u32 **b_num = ci->block;
+    char *kbuf = (char *)kmalloc(size, GFP_KERNEL);
+    char *block;
+    if(b_num[1] == NULL)
+        return -ENOENT;
+    
+    __u32 number_of_blocks = size / sbi->block_size;
+    loff_t data_shift = size % sbi->block_size;
 
-    return 0;
+    uint i;
+    for(i=0; i<number_of_blocks; i++) {
+        block = get_block(sb, b_num[i]);
+        if(block == NULL){
+            kfree(kbuf)
+            return -EIO;
+        }
+        memcpy(kbuf + (i * sbi->block_size), block, sbi->block_size);
+        kfree(block);
+    }
+    //TODO: copy_to_user
+    return ret;
 }
 struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
 {
@@ -151,12 +167,10 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
 
     unsigned int i;
 
-    for(i = 0; i<logical_per_physical; i++)
-    {
+    for(i = 0; i<logical_per_physical; i++) {
         bh[i] = sb_bread(sb, db_offset+i);
 
-        if(!bh)
-        {
+        if(!bh) {
             return NULL;
         }
     }
@@ -195,4 +209,9 @@ int lightfs_readpage(struct file *file, struct page *page) {
     unlock_page(page);
     kfree(file_dat);
     return 0;
+}
+
+const struct file_operations lightfs_file_operations {
+    .open = lightfs_open,
+    .read = lightfs_read,
 }
