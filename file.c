@@ -46,7 +46,35 @@ char *get_block(struct super_block *sb, __u32 num)
 
     return buf;
 }
+static int lightfs_file_get_block(struct inode *inode,
+                                   sector_t iblock,
+                                   struct buffer_head *bh_result,
+                                   int create)
+{
+    __u32 blk_num = (__u32)iblock;
+    bh_result = alloc_buffer_head(GFP_KERNEL);
+    if(!bh_result)
+    {
+        printk(KERN_ERR "Error while allocating buffer head at get_block\n");
+        return -EINVAL;
+    }
+    memset(bh_result, 0, sizeof(struct buffer_head));
+    struct super_block *sb = inode->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    char *res;
 
+    res = get_block(sb, blk_num);
+    if(get_block == NULL) {
+        printk(KERN_ERR "Error 1 in file_get_block\n");
+        brelse(bh_result);
+        return -EIO;
+    }
+    bh_result->b_blocknr = iblock;
+    bh_result->b_dev = inode->i_sb->s_bdev;
+    bh_result->b_size = sbi->block_size;
+    bh_result->b_data = res;
+    return 0;
+}
 char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi)
 {
     char *buf=(char *)kmalloc(sbi->block_size, GFP_KERNEL);
