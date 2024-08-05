@@ -134,6 +134,10 @@ static void lightfs_evict_inode(struct inode *inode)
 
     generic_drop_inode(inode);
 }
+static int lightfs_write_inode(struct inode *inode, struct writeback_control *wbc)
+{
+    return 0;
+}
 static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
     struct super_block *sb = dentry->d_sb;

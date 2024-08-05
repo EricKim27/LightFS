@@ -118,5 +118,6 @@ char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi);
 struct buffer_head **get_block_bh(struct super_block *sb, __u32 num);
 
 struct inode *lightfs_iget(struct super_block *sb, size_t inode);
+int write_inode(struct inode *ino, __u32 ino);
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);

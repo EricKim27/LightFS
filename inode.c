@@ -64,6 +64,32 @@ error:
     return NULL;
 }
 
+int write_inode(struct inode *ino, __u32 ino)
+{
+    struct super_block *sb = ino->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    struct lightfs_inode *ci;
+    struct buffer_head *bh = NULL;
+    
+    size_t ino_init = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1);
+    size_t inode_location;
+    size_t inode_shift = ino->i_ino % (LIGHTFS_LOGICAL_BS / sizeof(struct lightfs_inode));
+    if(inode_shift == 0)
+        inode_location = ino_init + ino->i_ino / (LIGHTFS_LOGICAL_BS / sizeof(struct lightfs_inode));
+    else
+        inode_location = ino_init + ino->i_ino / (LIGHTFS_LOGICAL_BS / sizeof(struct lightfs_inode)) + 1;
+    
+    bh = sb_bread(sb, inode_location);
+    if(!bh) {
+        printk(KERN_ERR "Error at write_inode\n");
+        return -EIO;
+    }
+    //TODO: Make a function to fill the raw_inode structure based on ino
+    memcpy(bh->b_data + inode_shift * sizeof(struct lightfs_inode), ci, sizeof(lightfs_inode));
+    mark_buffer_dirty(bh);
+    return 0;
+}
+
 //TODO: Needs to be corrected accordingly to the changed inode structure
 static struct dentry *lightfs_lookup(struct inode *dir,
                             struct dentry *dentry,
