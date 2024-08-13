@@ -212,7 +212,7 @@ static int lightfs_create(struct mnt_idmap *id,
     if(S_ISDIR(inode->i_mode)) {
         int ret = init_dir(sb, inode, dir);
         if(ret != 0)
-            printk(KERN_ERR "Error at line 190 @ inode.c\n");
+            printk(KERN_ERR "lightfs_create: Dir initialization Error\n");
     }
     if(block_shift == 0) {
         buf = get_block(sb, *(ii->block)[block_num-1]);
@@ -239,13 +239,61 @@ static int lightfs_create(struct mnt_idmap *id,
     kfree(dentry_from);
     return 0;
 }
+
 static int lightfs_mkdir(struct mnt_idmap *id, struct inode *dir, struct dentry *dentry, umode_t mode)
 {
     return lightfs_create(id, dir, dentry, mode | S_IFDIR, 0);
+}
+
+static int lightfs_rename(struct mnt_idmap *id,
+                           struct inode *old_dir,
+                           struct dentry *old_dentry,
+                           struct inode *new_dir,
+                           struct dentry *new_dentry,
+                           unsigned int flags)
+{
+
+}
+
+static int lightfs_rmdir(struct inode *dir, struct dentry *dentry)
+{
+    struct super_block *sb = dir->i_sb;
+    struct inode *inode = dentry->d_inode;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    struct lightfs_inode_info *ci = dir->i_private;
+    struct lightfs_dentry *d_found;
+    int ret;
+
+    ret = change_ibitmap(sb, inode->i_ino);
+    if(ret < 0) {
+        printk(KERN_ERR "rmdir: error while changing bitmap\n");
+        return -EINVAL;
+    }
+
+    char *i_block = get_block(sb, ci->block[0]);
+    if(i_block == NULL) {
+        printk(KERN_ERR "rmdir: error while reading i_block");
+        return -EINVAL;
+    }
+    
+    int i;
+    for(i = 0; i<ci->blocks; i++){
+        d_found = (struct lightfs_dentry *)(i_block + i * sizeof(struct lightfs_dentry));
+        if(d_found->filename == dentry->d_iname) {
+            memset(d_found, 0, sizeof(struct lightfs_dentry));
+            break;
+        }
+        return -ENOENT;
+    }
+    
+    sync_block(sb, ci->block[0], i_block);
+    return 0;
 }
 
 static const struct inode_operations lightfs_inode_operations = {
     .lookup = lightfs_lookup,
     .create = lightfs_create,
     .mkdir = lightfs_mkdir,
+    .rename = lightfs_rename,
+    .rmdir = lightfs_rmdir,
 };

@@ -111,7 +111,8 @@ void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);
 int lightfs_fill_super(struct super_block *sb, void *data, int silent);
 int lightfs_get_bitmap(struct super_block *sb);
 void lightfs_free_bitmap(struct super_block *sb);
-
+int change_ibitmap(struct super_block *sb, __u32 ino);
+int change_bbitmap(struct super_block *sb, __u32 blk);
 
 char *get_block(struct super_block *sb, __u32 num);
 char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi);
@@ -121,3 +122,4 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode);
 int write_inode(struct inode *inode, __u32 ino);
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);
+int find_first_empty_dentry(struct inode *dir);

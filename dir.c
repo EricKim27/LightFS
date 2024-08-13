@@ -36,6 +36,25 @@ static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
     return ret;
 }
 
+//going to be used for looking for the first empty dentry, as if it's removed, it's going to leave a gap.
+int find_first_empty_dentry(struct inode *dir)
+{
+    struct super_block *sb = dir->i_sb;
+    struct lightfs_inode_info *ci = dir->i_private;
+    struct lightfs_dentry *d_found;
+    char *dir_block = get_block(sb, ci->block[0]);
+    if(dir_block == NULL) {
+        return -EINVAL;
+    }
+    int i;
+    for(i=0; i<ci->blocks; i++){
+        d_found = (struct lightfs_dentry *)(dir_block + i * sizeof(struct lightfs_dentry));
+        if(d_found->filename == NULL && d_found->inode == NULL) {
+            return i;
+        }
+    }
+    return -ENOENT;
+}
 const struct file_operations lightfs_dir_operations = {
     .owner = THIS_MODULE,
     .iterate_shared = lightfs_iterate,
