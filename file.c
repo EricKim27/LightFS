@@ -70,7 +70,7 @@ static int lightfs_file_get_block(struct inode *inode,
         return -EIO;
     }
     bh_result->b_blocknr = iblock;
-    bh_result->b_dev = inode->i_sb->s_bdev;
+    bh_result->b_bdev = inode->i_sb->s_bdev;
     bh_result->b_size = sbi->block_size;
     bh_result->b_data = res;
     return 0;
