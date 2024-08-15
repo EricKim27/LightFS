@@ -232,7 +232,7 @@ static ssize_t lightfs_write(struct file *file,
     }
     size_t i;
     __u32 block_size = sbi->block_size;
-    char *block = (char *)kmalloc(sbi->block_size, GFP_KERNEL);
+    char *block;
     for(i = 0; i<number_of_blocks; i++) {
         block = get_block(sb, ci->block[i + start_block]);
         memcpy(block, dat + i * sbi->block_size, block_size);

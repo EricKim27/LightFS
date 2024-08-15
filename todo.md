@@ -1,14 +1,11 @@
 # TO-DO:
 ## inode operations
- - make file operations, dir operations, link operations
  - validate the offset calculation method
- - Retrieval of data block numbers
-    - Inode structure will have one structure that points to the block containing data block numbers
  - New inode container structure
     - pointer to block number block
     - 
 ## file operations
- - think of a file offset calculation method when open()
+ - Trunication
 
 ## address space operations
  - Readpage

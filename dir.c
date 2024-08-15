@@ -7,6 +7,7 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct lightfs_dentry *dentry;
+    struct lightfs_d_head *head;
     struct lightfs_inode_info *i_info = dir->i_private;
     char *my_name = ".";
     char *parent_name = "..";
@@ -16,9 +17,15 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     if(buf == NULL)
     {
         printk(KERN_ERR "error at line 49 @ dir.c\n");
-        return -EIO;
+        return -EFAULT;
     }
-    dentry = (struct lightfs_dentry *)(buf);
+    head = (struct lightfs_d_head *)buf;
+    dentry = (struct lightfs_dentry *)((char *)buf + sizeof(struct lightfs_d_head));
+
+    head->item_num = 2;
+    head->magic = 27;
+
+
     strncpy(dentry->filename, my_name, strlen(my_name) + 1);
     dentry->inode = dir->i_ino;
     dentry++;
@@ -26,18 +33,46 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     strncpy(dentry->filename, parent_name, strlen(parent_name) + 1);
     dentry->inode = parent->i_ino;
 
-    sync_block(sb, *(i_info->block)[0], buf);
+    sync_block(sb, blk_num, buf);
     return 0;
 }
 static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
 {
     struct lightfs_dentry *entr;
+    struct lightfs_d_head *head;
     struct inode *inode;
     inode = dir->f_inode;
+    struct lightfs_inode_info *ci = inode->i_private;
+    struct super_block *sb = inode->i_sb;
+    char *blk = get_block(sb, ci->block[0]);
+    if(!blk) {
+        kfree(blk);
+        return -EFAULT;
+    }
     
-    int ret = 0;
-    
-    return ret;
+    head = (struct lightfs_d_head *)blk;
+    entr = (struct lightfs_dentry *)((char *)blk + sizeof(struct lightfs_d_head));
+    if(head->magic != 27) {
+        kfree(blk);
+        return -EFAULT;
+    }
+    int i;
+    for(i = 0; i < head->item_num; i++) {
+        if (entr->filename != NULL && entr->inode != NULL) {
+            if(!dir_emit(ctx, 
+                        entr->filename, 
+                        strlen(entr->filename), 
+                        entr->inode, 
+                        DT_UNKNOWN))
+            {
+                kfree(blk);
+                return -ENOMEM;
+            }
+        }
+        entr++;
+    }
+    kfree(blk);
+    return 0;
 }
 
 //going to be used for looking for the first empty dentry, as if it's removed, it's going to leave a gap.
