@@ -153,18 +153,26 @@ static ssize_t lightfs_read(struct file *file,
     ssize_t ret = 0;
     loff_t pos = *ppos;
     loff_t size = i_size_read(inode);
+    loff_t start_block = pos / sbi->block_size;
     __u32 **b_num = ci->block;
     char *kbuf = (char *)kmalloc(size, GFP_KERNEL);
     char *block;
     if(b_num[1] == NULL)
         return -ENOENT;
     
-    __u32 number_of_blocks = size / sbi->block_size;
+    __u32 number_of_blocks;
     loff_t data_shift = size % sbi->block_size;
+
+    if(data_shift == 0) {
+        number_of_blocks = size / sbi->block_size;
+    } else {
+        number_of_blocks = size / sbi->block_size + 1;
+    }
+
     char *dbuf = (char *)kmalloc(number_of_blocks * sbi->block_size, GFP_KERNEL);
     uint i;
     for(i=0; i<number_of_blocks; i++) {
-        block = get_block(sb, *b_num[i]);
+        block = get_block(sb, *b_num[i+start_block]);
         if(block == NULL){
             kfree(kbuf);
             return -EINVAL;
@@ -192,7 +200,50 @@ static ssize_t lightfs_write(struct file *file,
                               size_t len,
                               loff_t *ppos)
 {
+    struct inode *inode = file->f_inode;
+    struct super_block *sb = inode->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    struct lightfs_inode_info *ci = inode->i_private;
+    struct buffer_head *bh;
+    char *kbuf;
+    loff_t pos = *ppos;
+    size_t size = i_size_read(inode);
     ssize_t ret = 0;
+    __u32 number_of_blocks;
+    loff_t start_block = pos / sbi->block_size;
+    loff_t block_shift = size % sbi->block_size;
+
+    if (!file || !buf || !ppos)
+        return -EINVAL;
+    if(block_shift == 0) {
+        number_of_blocks = size / sbi->block_size;
+    } else {
+        number_of_blocks = size / sbi->block_size + 1;
+    }
+
+    __u32 **b_num = ci->block;
+    char *dat = (char *)kmalloc(size, GFP_KERNEL);
+    if(!dat) {
+        return -ENOMEM;
+    }
+    if(copy_from_user(dat, buf, len)) {
+        kfree(dat);
+        return -EFAULT;
+    }
+    size_t i;
+    __u32 block_size = sbi->block_size;
+    char *block = (char *)kmalloc(sbi->block_size, GFP_KERNEL);
+    for(i = 0; i<number_of_blocks; i++) {
+        block = get_block(sb, ci->block[i + start_block]);
+        memcpy(block, dat + i * sbi->block_size, block_size);
+        sync_block(sb, ci->block[i+start_block], block);
+    }
+    ret += size;
+    len -= size;
+    pos += size;
+
+    *ppos = pos;
+    kfree(dat);
     return ret;
 }
 struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
@@ -262,15 +313,14 @@ int lightfs_readpage(struct file *file, struct page *page) {
     return 0;
 }
 
-static loff_t lightfs_llseek(struct file *filp, loff_t offset, int whence)
-{
-    loff_t ret = 0;
-    return ret;
-}
 const struct file_operations lightfs_file_operations = {
+    .owner = THIS_MODULE,
     .open = &lightfs_open,
     .read = lightfs_read,
     .write = lightfs_write,
-    .llseek = &lightfs_llseek,
+    .llseek = generic_file_llseek,
     .fsync = generic_file_fsync,
+};
+const struct address_space_operations lightfs_addr_ops = {
+    
 };

@@ -252,7 +252,7 @@ static int lightfs_rename(struct mnt_idmap *id,
                            struct dentry *new_dentry,
                            unsigned int flags)
 {
-
+    return 0;
 }
 
 static int lightfs_rmdir(struct inode *dir, struct dentry *dentry)

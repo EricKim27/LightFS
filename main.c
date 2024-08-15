@@ -103,7 +103,10 @@ release:
     brelse(sbh);
     return ret;
 }
-
+static void lightfs_destroy_inode(struct inode *inode)
+{
+    kfree(inode->i_private);
+}
 static struct dentry *lightfs_mount(struct file_system_type *fs_type,
                               int flags,
                               const char *dev_name,
@@ -197,6 +200,7 @@ const struct super_operations lightfs_s_ops = {
     .statfs = lightfs_statfs,
     .sync_fs = lightfs_syncfs,
     .evict_inode = lightfs_evict_inode,
+    .destroy_inode = lightfs_destroy_inode,
 };
 
 static void __exit lightfs_exit(void)
