@@ -20,9 +20,10 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     mem_inode->i_ino = inode;
     mem_inode->i_sb = sb;
     mem_inode->i_private = ci;
+    ci->vfs_inode = mem_inode;
     //TODO: Verify if the calculated offset is correct
     __u32 inode_offset = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1) + (inode / LIGHTFS_LOGICAL_BS);
-    unsigned int inode_location_inlb = inode % LIGHTFS_LOGICAL_BS;
+    unsigned int inode_location_inlb = (inode * sizeof(struct lightfs_inode)) % LIGHTFS_LOGICAL_BS;
     bh = sb_bread(sb, inode_offset);
 
     if(!bh)
@@ -32,7 +33,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     }
 
     //fill inode
-    raw_inode = (struct lightfs_inode *)(bh->b_data + (inode_location_inlb * sizeof(struct lightfs_inode)));
+    raw_inode = (struct lightfs_inode *)((char *)bh->b_data + inode_location_inlb);
     i_gid_write(mem_inode, raw_inode->i_gid);
     i_uid_write(mem_inode, raw_inode->i_uid);
     mem_inode->i_size = le32_to_cpu(raw_inode->i_size);
@@ -44,10 +45,8 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     ci->block = blk;
 
      if (S_ISDIR(mem_inode->i_mode)) {
-        //TODO: define operations
         mem_inode->i_fop = &lightfs_dir_operations;
      } else if(S_ISREG(mem_inode->i_mode)){
-        //TODO: define operations
         mem_inode->i_fop = &lightfs_file_operations;
      } else if(S_ISLNK(mem_inode->i_mode)){
         //TODO: define operations
@@ -153,7 +152,7 @@ static struct dentry *lightfs_lookup(struct inode *dir,
     kfree(raw_dir);
     return NULL;
 }
-
+//needs to be cleaned up
 static int lightfs_create(struct mnt_idmap *id,
                        struct inode *dir,
                        struct dentry *dentry,
@@ -166,7 +165,7 @@ static int lightfs_create(struct mnt_idmap *id,
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct inode *inode;
     struct lightfs_inode *inode_i;
-    struct lightfs_inode_info *ii;
+    struct lightfs_inode_info *ii = inode->i_private;
     struct buffer_head *ibh; //buffer head for inode
     struct buffer_head *bbh; //buffer head for bitmap
     struct lightfs_d_head *dh;
@@ -181,8 +180,10 @@ static int lightfs_create(struct mnt_idmap *id,
     size_t b_offset = 1 + (inode->i_ino / LIGHTFS_LOGICAL_BS) + 1; //This calculation method needs to change.
     size_t b_shift = inode->i_ino % LIGHTFS_LOGICAL_BS;
     bbh = sb_bread(sb, b_offset);
+    //This part of the code will be moved to bitmap.c
     bool *bmap_mark = (bool *)(bbh->b_data) + b_shift;
-    bmap_mark = 1;
+    *bmap_mark = true;
+    //end of "This part"
 
     size_t i_offset = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1) + (inode->i_ino / 4) + 1;
     size_t i_shift = inode->i_ino % 4;

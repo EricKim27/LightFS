@@ -1,6 +1,7 @@
 #include "lightfs.h"
 #include <linux/buffer_head.h>
 #include <linux/slab.h>
+#include <linux/mpage.h>
 
 /* plans to change this function: return a pointer to buffer containing data
  * and then later use sync_block to sync the data to the disk.
@@ -75,6 +76,7 @@ static int lightfs_file_get_block(struct inode *inode,
     bh_result->b_data = res;
     return 0;
 }
+
 char *blkcpy(struct buffer_head **bh, struct lightfs_superblock *sbi)
 {
     char *buf=(char *)kmalloc(sbi->block_size, GFP_KERNEL);
@@ -195,6 +197,7 @@ static ssize_t lightfs_read(struct file *file,
     pos += size;
     return ret;
 }
+
 static ssize_t lightfs_write(struct file *file,
                               const char __user *buf,
                               size_t len,
@@ -246,6 +249,7 @@ static ssize_t lightfs_write(struct file *file,
     kfree(dat);
     return ret;
 }
+
 struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
 {
     struct buffer_head **bh = NULL;
@@ -278,6 +282,7 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
     }
     return bh;
 }
+
 int lightfs_readpage(struct file *file, struct page *page) {
     struct inode *inode = file->f_mapping->host;
     struct lightfs_inode_info *ci = inode->i_private;
@@ -313,6 +318,11 @@ int lightfs_readpage(struct file *file, struct page *page) {
     return 0;
 }
 
+static void lightfs_readahead(struct readahead_control *rac)
+{
+    return mpage_readahead(rac, lightfs_file_get_block);
+}
+
 const struct file_operations lightfs_file_operations = {
     .owner = THIS_MODULE,
     .open = &lightfs_open,
@@ -321,6 +331,7 @@ const struct file_operations lightfs_file_operations = {
     .llseek = generic_file_llseek,
     .fsync = generic_file_fsync,
 };
+
 const struct address_space_operations lightfs_addr_ops = {
-    
+    .readahead = lightfs_readahead,
 };

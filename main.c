@@ -139,6 +139,11 @@ static void lightfs_evict_inode(struct inode *inode)
 }
 static int lightfs_write_inode(struct inode *inode, struct writeback_control *wbc)
 {
+
+    if(write_inode(inode, inode->i_ino) < 0) {
+        return -EFAULT;
+    }
+
     return 0;
 }
 static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
@@ -196,11 +201,12 @@ static int lightfs_syncfs(struct super_block *sb, int wait)
 }
 
 const struct super_operations lightfs_s_ops = {
-    .put_super = lightfs_put_super,
-    .statfs = lightfs_statfs,
-    .sync_fs = lightfs_syncfs,
-    .evict_inode = lightfs_evict_inode,
-    .destroy_inode = lightfs_destroy_inode,
+    .put_super     =   lightfs_put_super,
+    .statfs        =   lightfs_statfs,
+    .sync_fs       =   lightfs_syncfs,
+    .write_inode   =   lightfs_write_inode,
+    .evict_inode   =   lightfs_evict_inode,
+    .destroy_inode =   lightfs_destroy_inode,
 };
 
 static void __exit lightfs_exit(void)

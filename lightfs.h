@@ -82,7 +82,7 @@ struct lightfs_inode {
  the actual data of the file.
  */
 struct lightfs_inode_info {
-    struct inode vfs_inode;
+    struct inode *vfs_inode;
     __u32 blocks;
     __u32 **block;
 };
