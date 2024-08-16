@@ -67,3 +67,60 @@ int lightfs_get_first_bit(struct super_block *sb)
     }
     return -ENOENT;
 }
+
+int change_ibitmap(struct super_block *sb, __u32 ino)
+{
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    struct buffer_head *bh;
+    __u32 bitmap_offset;
+    __u32 bitmap_shift;
+    bool *bitmap;
+
+    bitmap_shift = ino % LIGHTFS_LOGICAL_BS;
+    if(bitmap_shift == 0)
+        bitmap_offset = 1 + (ino / LIGHTFS_LOGICAL_BS);
+    else
+        bitmap_offset = 1 + (ino / LIGHTFS_LOGICAL_BS) + 1;
+    
+    bh = sb_bread(sb, bitmap_offset);
+    if(!bh) {
+        return -EFAULT;
+    }
+    bitmap = (bool *)((char *)bh->b_data + bitmap_shift);
+    if(bitmap == true)
+        *bitmap = false;
+    else
+        *bitmap = true;
+
+    mark_buffer_dirty(bh);
+    brelse(bh);
+    return 0;
+}
+
+int change_bbitmap(struct super_block *sb, __u32 blk)
+{
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    struct buffer_head *bh;
+    __u32 block_offset;
+    __u32 block_shift = blk % LIGHTFS_LOGICAL_BS;
+    bool *bitmap;
+
+    if(block_shift == 0) {
+        block_offset = ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + (block_offset / LIGHTFS_LOGICAL_BS);
+    } else {
+        block_offset = ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + (block_offset / LIGHTFS_LOGICAL_BS) + 1;
+    }
+    bh = sb_bread(sb, block_offset);
+    if(!bh) {
+        return -EFAULT;
+    }
+    bitmap = (bool *)((char *)bh->b_data + block_shift);
+    if(bitmap == true)
+        *bitmap = false;
+    else
+        *bitmap = true;
+        
+    mark_buffer_dirty(bh);
+    brelse(bh);
+    return 0;
+}

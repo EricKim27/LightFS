@@ -85,7 +85,14 @@ int write_inode(struct inode *inode, __u32 ino)
     }
     //TODO: Make a function to fill the raw_inode structure based on ino
     memcpy(bh->b_data + inode_shift * sizeof(struct lightfs_inode), ci, sizeof(struct lightfs_inode));
+    
+    if(change_ibitmap(sb, ino) < 0) {
+        brelse(bh);
+        return -EFAULT;
+    }
+
     mark_buffer_dirty(bh);
+    brelse(bh);
     return 0;
 }
 
@@ -230,6 +237,13 @@ static int lightfs_create(struct mnt_idmap *id,
     dentry_location = ((struct lightfs_dentry *)buf + dh->item_num + 2);
     
     memcpy(dentry_location, dentry_from, sizeof(struct lightfs_dentry));
+    
+    if(change_ibitmap(sb, inode->i_ino) < 0) {
+        brelse(ibh);
+        brelse(bbh);
+        kfree(dentry_from);
+        return -EFAULT;
+    }
 
     mark_buffer_dirty(ibh);
     mark_buffer_dirty(bbh);

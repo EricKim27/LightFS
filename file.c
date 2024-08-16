@@ -114,6 +114,10 @@ int sync_block(struct super_block *sb, __u32 block_no, char *buf)
         mark_buffer_dirty(bh[i]);
         brelse(bh[i]);
     }
+    if(change_bbitmap(sb, block_no) < 0) {
+        kfree(buf);
+        return -EFAULT;
+    }
     kfree(buf);
     return 0;
 }
