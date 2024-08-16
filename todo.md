@@ -18,3 +18,4 @@
     - Unlock the file
 ## bitmap
  - Think of a syncing operation
+ - make a bitmap_changevalue function and add it to all write functions.
