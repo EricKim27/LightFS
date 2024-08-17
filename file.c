@@ -286,42 +286,6 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
     return bh;
 }
 
-//maybe remove it
-static int lightfs_readpage(struct file *file, struct page *page) {
-    struct inode *inode = file->f_mapping->host;
-    struct lightfs_inode_info *ci = inode->i_private;
-    struct super_block *sb = inode->i_sb;
-    struct lightfs_superblock *sbi = sb->s_fs_info;
-    char *blk_dat;
-    char *file_dat;
-    char *kaddr;
-
-    loff_t offset = page_offset(page);
-    size_t bytes_to_read = min_t(size_t, PAGE_SIZE, i_size_read(inode) - offset);
-    size_t page_location = offset % sbi->block_size;
-    __u32 block_start = offset / 4096;
-    uint num_blk_to_read;
-    if(bytes_to_read % sbi->block_size == 0)
-        num_blk_to_read = 1;
-    else
-        num_blk_to_read = 2;    
-    __u32 **blk_num = ci->block;
-    file_dat = (char *)kmalloc(sbi->block_size * num_blk_to_read, GFP_KERNEL);
-
-    for(int i=0; i<num_blk_to_read; i++){
-        blk_dat = get_block(sb, *blk_num[i]);
-        memcpy(file_dat + i*sbi->block_size, blk_dat, sbi->block_size);
-    }
-    kaddr = kmap(page);
-    memcpy(kaddr, file_dat + (bytes_to_read & sbi->block_size), PAGE_SIZE);
-
-    kunmap(page);
-    SetPageUptodate(page);
-    unlock_page(page);
-    kfree(file_dat);
-    return 0;
-}
-
 static void lightfs_readahead(struct readahead_control *rac)
 {
     return mpage_readahead(rac, lightfs_file_get_block);

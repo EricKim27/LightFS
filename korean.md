@@ -130,11 +130,12 @@ block of a directory
         - 심볼릭 링크 지원 안 하기로 결정
 - super_operations
     - ***fill_super***
-    - ***syncfs - 추가 작업 필요***
+    - ***syncfs***
     - ***statfs***
     - ***put_super***
     - allocate_inode
         - 아이노드 공간 할당(아이노드 구조체 + 아이노드 인포)
+        - 필요없을수도
     - ***destroy_inode***
     - ***write_inode***
 - address_space_operations
@@ -149,7 +150,6 @@ block of a directory
     - ***get_first_bit***
     - ***modify_bit_data*** - 데이터 블록 비트맵에서 1이나 0으로 변경
     - ***modify_bit_inode***  - 아이노드 비트맵에서 1이나 0으로 변경
-    - more
 - file_operations
     - ***open*** - trunication 생각해보기
         - init file
@@ -158,7 +158,7 @@ block of a directory
     - ***write***
         - struct file에서 데이터 필드 정보를 블록에 작성
     - ***llseek*** - generic_file_llseek
-    - fsync
+    - ***fsync***
 
 # 참고자료
 
