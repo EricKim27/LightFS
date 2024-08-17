@@ -326,6 +326,20 @@ static void lightfs_readahead(struct readahead_control *rac)
 {
     return mpage_readahead(rac, lightfs_file_get_block);
 }
+static int lightfs_write_begin(struct file *file,
+                                struct address_space *mapping,
+                                loff_t pos,
+                                unsigned int len,
+                                struct page **pagep,
+                                void **fsdata)
+{
+    if(len > LIGHTFS_MAX_FSIZE) {
+        return -ENOSPC;
+    }
+    int err = block_write_begin(mapping, pos, len, pagep, lightfs_file_get_block);
+    return err;
+}
+
 
 const struct file_operations lightfs_file_operations = {
     .owner = THIS_MODULE,
@@ -338,4 +352,6 @@ const struct file_operations lightfs_file_operations = {
 
 const struct address_space_operations lightfs_addr_ops = {
     .readahead = lightfs_readahead,
+    .write_begin = lightfs_write_begin,
+    .write_end = generic_write_end,
 };
