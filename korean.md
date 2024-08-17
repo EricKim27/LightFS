@@ -135,8 +135,8 @@ block of a directory
     - ***put_super***
     - allocate_inode
         - 아이노드 공간 할당(아이노드 구조체 + 아이노드 인포)
-    - destroy_inode
-    - write_inode
+    - ***destroy_inode***
+    - ***write_inode***
 - address_space_operations
     - ***readpage***
     - writepage
