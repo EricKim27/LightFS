@@ -121,7 +121,7 @@ block of a directory
         - 아이노드 삭제, 비트맵 0처리
     - ***mkdir***
         - 아이노드 번호 할당, 블록 번호 할당, 해당 블록에 “.”, “..” 디엔트리 추가하기, 아이노드 비트맵 1처리, 블록 비트맵 1처리
-    - rmdir
+    - ***rmdir***
         - 비트맵에서 0처리, 블록 비트맵에서 0처리, 부모 디엔트리에서 삭제
     - rename
         - 디엔트리 위치 찾아서 이름 필드 변경
@@ -140,24 +140,24 @@ block of a directory
 - address_space_operations
     - ***readpage***
     - writepage
-    - write_begin - generic_write_begin with modification
-    - write_end - generic_write_end with modification
+    - ***write_begin***
+    - ***write_end*** - generic_write_end
 - directory_operations
-    - iterate_shared
+    - ***iterate_shared***
 - link_operations
 - bitmap_operations
     - ***get_first_bit***
-    - modify_bit_data - 데이터 블록 비트맵에서 1이나 0으로 변경
-    - modify_bit_inode  - 아이노드 비트맵에서 1이나 0으로 변경
+    - ***modify_bit_data*** - 데이터 블록 비트맵에서 1이나 0으로 변경
+    - ***modify_bit_inode***  - 아이노드 비트맵에서 1이나 0으로 변경
     - more
 - file_operations
     - ***open*** - trunication 생각해보기
         - init file
-    - read
+    - ***read***
         - 아이노드에서 블록 번호 얻기 ⇒ readpage로 읽기 ⇒ 유저 버퍼로 복사 ⇒ 읽은 사이즈 리턴
-    - write
+    - ***write***
         - struct file에서 데이터 필드 정보를 블록에 작성
-    - llseek
+    - ***llseek*** - generic_file_llseek
     - fsync
 
 # 참고자료
