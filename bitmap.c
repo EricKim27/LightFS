@@ -115,7 +115,7 @@ int change_bbitmap(struct super_block *sb, __u32 blk)
         return -EFAULT;
     }
     bitmap = (bool *)((char *)bh->b_data + block_shift);
-    if(bitmap == true)
+    if(bitmap == 1)
         *bitmap = false;
     else
         *bitmap = true;

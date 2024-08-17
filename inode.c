@@ -4,10 +4,12 @@
 #include <linux/buffer_head.h>
 #include <linux/dcache.h>
 #include <linux/string.h>
+#include <linux/uidgid.h>
 
 //TODO: need to fix all the buffer head variable to fit the newly revised get_block() function.
 
 static const struct inode_operations lightfs_inode_operations;
+static const struct file_operations lightfs_link_operations;
 //getting inode structure from disk
 struct inode *lightfs_iget(struct super_block *sb, size_t inode)
 {
@@ -41,6 +43,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     mem_inode->__i_atime = raw_inode->i_atime;
     mem_inode->__i_mtime = raw_inode->i_mtime;
     mem_inode->__i_ctime = raw_inode->i_ctime;
+    ci->block_no_blk = raw_inode->block_no_blk;
     __u32 **blk = (__u32 **)get_block(sb, raw_inode->block_no_blk);
     ci->block = blk;
 
@@ -49,8 +52,7 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
      } else if(S_ISREG(mem_inode->i_mode)){
         mem_inode->i_fop = &lightfs_file_operations;
      } else if(S_ISLNK(mem_inode->i_mode)){
-        //TODO: define operations
-        //mem_inode->i_fop = &lightfs_link_operations;
+        mem_inode->i_fop = &lightfs_link_operations;
 
      }
      mem_inode->i_op = &lightfs_inode_operations;
@@ -67,7 +69,8 @@ int write_inode(struct inode *inode, __u32 ino)
 {
     struct super_block *sb = inode->i_sb;
     struct lightfs_superblock *sbi = sb->s_fs_info;
-    struct lightfs_inode *ci;
+    struct lightfs_inode *ci = (struct lightfs_inode *)kmalloc(sizeof(struct lightfs_inode), GFP_KERNEL);
+    struct lightfs_inode_info *ino_info = inode->i_private;
     struct buffer_head *bh = NULL;
     
     size_t ino_init = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1);
@@ -83,8 +86,18 @@ int write_inode(struct inode *inode, __u32 ino)
         printk(KERN_ERR "Error at write_inode\n");
         return -EIO;
     }
-    //TODO: Make a function to fill the raw_inode structure based on ino
-    memcpy(bh->b_data + inode_shift * sizeof(struct lightfs_inode), ci, sizeof(struct lightfs_inode));
+
+    ci->block_no_blk = ino_info->block_no_blk;
+    ci->blocks = ino_info->blocks;
+    ci->i_atime = inode->__i_atime;
+    ci->i_ctime = inode->__i_ctime;
+    ci->i_mtime = inode->__i_mtime;
+    ci->i_size = cpu_to_le32(inode->i_size);
+    ci->i_mode = cpu_to_le32(inode->i_mode);
+    ci->i_uid = from_kuid(&init_user_ns ,inode->i_uid);
+    ci->i_gid = from_kgid(&init_user_ns, inode->i_gid);
+
+    memcpy(bh->b_data + inode_shift, ci, sizeof(struct lightfs_inode));
     
     if(change_ibitmap(sb, ino) < 0) {
         brelse(bh);
@@ -294,7 +307,7 @@ static int lightfs_rmdir(struct inode *dir, struct dentry *dentry)
     int i;
     for(i = 0; i<ci->blocks; i++){
         d_found = (struct lightfs_dentry *)(i_block + i * sizeof(struct lightfs_dentry));
-        if(d_found->filename == dentry->d_iname) {
+        if(strncmp(d_found->filename, dentry->d_iname, lightfs_fnlen) == true) {
             memset(d_found, 0, sizeof(struct lightfs_dentry));
             break;
         }

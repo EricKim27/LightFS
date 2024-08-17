@@ -90,7 +90,7 @@ int find_first_empty_dentry(struct inode *dir)
     int i;
     for(i=0; i<ci->blocks; i++){
         d_found = (struct lightfs_dentry *)(dir_block + i * sizeof(struct lightfs_dentry));
-        if(d_found->filename == NULL && d_found->inode == NULL) {
+        if(strncmp(d_found->filename, "", lightfs_fnlen) == true|| d_found->inode == 0) {
             return i;
         }
     }

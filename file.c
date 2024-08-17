@@ -65,7 +65,7 @@ static int lightfs_file_get_block(struct inode *inode,
     char *res;
 
     res = get_block(sb, blk_num);
-    if(get_block == NULL) {
+    if(res == NULL) {
         printk(KERN_ERR "Error 1 in file_get_block\n");
         brelse(bh_result);
         return -EIO;
@@ -212,7 +212,6 @@ static ssize_t lightfs_write(struct file *file,
     struct lightfs_superblock *sbi = sb->s_fs_info;
     struct lightfs_inode_info *ci = inode->i_private;
     struct buffer_head *bh;
-    char *kbuf;
     loff_t pos = *ppos;
     size_t size = i_size_read(inode);
     ssize_t ret = 0;
@@ -241,9 +240,9 @@ static ssize_t lightfs_write(struct file *file,
     __u32 block_size = sbi->block_size;
     char *block;
     for(i = 0; i<number_of_blocks; i++) {
-        block = get_block(sb, ci->block[i + start_block]);
+        block = get_block(sb, b_num[i + start_block]);
         memcpy(block, dat + i * sbi->block_size, block_size);
-        sync_block(sb, ci->block[i+start_block], block);
+        sync_block(sb, b_num[i+start_block], block);
     }
     ret += size;
     len -= size;
@@ -287,7 +286,8 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
     return bh;
 }
 
-int lightfs_readpage(struct file *file, struct page *page) {
+//maybe remove it
+static int lightfs_readpage(struct file *file, struct page *page) {
     struct inode *inode = file->f_mapping->host;
     struct lightfs_inode_info *ci = inode->i_private;
     struct super_block *sb = inode->i_sb;

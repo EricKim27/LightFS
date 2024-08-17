@@ -83,6 +83,7 @@ struct lightfs_inode {
  */
 struct lightfs_inode_info {
     struct inode *vfs_inode;
+    __u32 block_no_blk;
     __u32 blocks;
     __u32 **block;
 };
