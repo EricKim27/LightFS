@@ -3,10 +3,12 @@
 #include <linux/slab.h>
 #include <linux/mpage.h>
 
-/* plans to change this function: return a pointer to buffer containing data
- * and then later use sync_block to sync the data to the disk.
- */
-//going to implement readpage and writepage here.
+//going to implement writepage here.
+__u32 physical_to_logical(__u32 physical, struct super_block *sb) 
+{
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    return physical * (sbi->block_size / LIGHTFS_LOGICAL_BS) - ((sbi->block_size / LIGHTFS_LOGICAL_BS) - 1);
+}
 char *get_block(struct super_block *sb, __u32 num)
 {
     struct buffer_head **bh = NULL;
@@ -74,6 +76,29 @@ static int lightfs_file_get_block(struct inode *inode,
     bh_result->b_bdev = inode->i_sb->s_bdev;
     bh_result->b_size = sbi->block_size;
     bh_result->b_data = res;
+    return 0;
+}
+static int lightfs_get_logical(struct inode *inode,
+                               sector_t iblock,
+                               struct buffer_head *bh_result,
+                               int create)
+{
+    __u32 b_num = (__u32)iblock;
+    struct super_block *sb = inode->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    struct buffer_head *bh = NULL;
+    size_t ino;
+    int ino_shift = (sbi->inode_block_num * sizeof(struct lightfs_inode)) % LIGHTFS_LOGICAL_BS;
+    if(ino_shift == 0)
+        ino = ((sbi->inode_block_num * sizeof(struct lightfs_inode)) / LIGHTFS_LOGICAL_BS);
+    else
+        ino = ((sbi->inode_block_num * sizeof(struct lightfs_inode)) / LIGHTFS_LOGICAL_BS) + 1;
+    loff_t start_block = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1) + ino + b_num;
+    bh = sb_bread(sb, start_block);
+    if(!bh){
+        return -EINVAL;
+    }
+    bh_result = bh;
     return 0;
 }
 
@@ -289,6 +314,53 @@ struct buffer_head **get_block_bh(struct super_block *sb, __u32 num)
 static void lightfs_readahead(struct readahead_control *rac)
 {
     return mpage_readahead(rac, lightfs_file_get_block);
+}
+//TODO: since the physical block size and logical block sizes differ, it is required to think of a page mapping and writing code.
+static int lightfs_writepage(struct page *page, struct writeback_control *wbc)
+{
+    struct inode *ino = page->mapping->host;
+    struct lightfs_inode_info *ci = ino->i_private;
+    struct super_block *sb = ino->i_sb;
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    char *block;
+    loff_t offset = page_offset(page);
+    sector_t start_in_block = offset / sbi->block_size;
+    sector_t number_of_blocks;
+    sector_t block_shift = offset % sbi->block_size;
+    int err;
+
+    if(block_shift == 0)
+        number_of_blocks = PAGE_SIZE / sbi->block_size;
+    else
+        number_of_blocks = PAGE_SIZE / sbi->block_size + 1;
+
+    __u32 block_list[number_of_blocks];
+    sector_t number_of_logical;
+    int i;
+    lock_page(page);
+    char *page_data = kmap(page);
+    for(i=0; i<number_of_blocks; i++){
+        block_list[i] = ci->block[start_in_block + i];
+    }
+
+    block = get_block(sb, block_list[0]);
+    memcpy(block + block_shift, page_data, PAGE_SIZE - block_shift);
+    sync_block(sb, block_list[0], block);
+    if(number_of_blocks == 2) {
+        block = get_block(sb, block_list[1]);
+        memcpy(block, page_data + (PAGE_SIZE - block_shift), block_shift);
+        sync_block(sb, block_list[1], block);
+    }
+
+    kunmap(page);
+    unlock_page(page);
+    err = 0;
+
+    lock_page(page);
+
+
+    unlock_page(page);
+    return err;
 }
 static int lightfs_write_begin(struct file *file,
                                 struct address_space *mapping,

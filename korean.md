@@ -117,6 +117,7 @@ block of a directory
         - 블록 번호 할당, 부모 폴더에 디엔트리 추가, 아이노드 디스크에 작성, 파일 오퍼레이션 할당, 아이노드 비트맵 필드에 1처리, 데이터 블록 필드에 1처리
     - ***link***
         - 아이노드에 링크된 아이노드 번호를 작성하기(작성할 필드 생각해보기), 디스크에 아이노드 작성하기, 디엔트리에 링크 엔트리 작성
+        - 링크 지원 안할수도
     - unlink
         - 아이노드 삭제, 비트맵 0처리
     - ***mkdir***
@@ -139,10 +140,10 @@ block of a directory
     - ***destroy_inode***
     - ***write_inode***
 - address_space_operations
-    - ***readpage***
-    - writepage
-    - ***write_begin***
-    - ***write_end*** - generic_write_end
+    - ***readahead***
+    - ***writepage***
+    - ***write_begin*** - 몇가지 작업을 빼야 함
+    - write_end - 만들어야할 수도?
 - directory_operations
     - ***iterate_shared***
 - link_operations
