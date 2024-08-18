@@ -36,6 +36,16 @@ int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent)
     sync_block(sb, blk_num, buf);
     return 0;
 }
+
+struct lightfs_dentry *fill_disk_dentry(struct dentry *dentry)
+{
+    struct lightfs_dentry *retent = (struct lightfs_dentry *)kmalloc(sizeof(struct lightfs_dentry), GFP_KERNEL);
+    if(strncpy(retent->filename, dentry->d_iname, lightfs_fnlen) == false){
+        return -EINVAL;
+    }
+    retent->inode = dentry->d_inode->i_ino;
+    return retent;
+}
 static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
 {
     struct lightfs_dentry *entr;
@@ -94,7 +104,7 @@ int find_first_empty_dentry(struct inode *dir)
             return i;
         }
     }
-    return -ENOENT;
+    return ci->blocks+1;
 }
 const struct file_operations lightfs_dir_operations = {
     .owner = THIS_MODULE,

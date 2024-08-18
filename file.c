@@ -362,6 +362,8 @@ static int lightfs_writepage(struct page *page, struct writeback_control *wbc)
     unlock_page(page);
     return err;
 }
+
+//Since most block I/O prep is done on lightfs_write, this code is mainly for checking permission and filesize.
 static int lightfs_write_begin(struct file *file,
                                 struct address_space *mapping,
                                 loff_t pos,
@@ -372,8 +374,11 @@ static int lightfs_write_begin(struct file *file,
     if(len > LIGHTFS_MAX_FSIZE) {
         return -ENOSPC;
     }
-    int err = block_write_begin(mapping, pos, len, pagep, lightfs_file_get_block);
-    return err;
+     if (!may_write_to_inode(file->f_inode)) {
+        return -EACCES;
+    }
+
+    return 0;
 }
 
 

@@ -280,6 +280,40 @@ static int lightfs_rename(struct mnt_idmap *id,
                            struct dentry *new_dentry,
                            unsigned int flags)
 {
+    struct lightfs_dentry *dent;
+    struct lightfs_d_head *head;
+    struct super_block *sb = old_dir->i_sb;
+    struct lightfs_inode_info *old_ci = old_dir->i_private;
+    struct lightfs_inode_info *new_ci = new_dir->i_private;
+    
+    char *block = get_block(sb, old_ci->block[0]);
+    if(!block){
+        return -EINVAL;
+    }
+    head = (struct lightfs_d_head *)block;
+    dent = (struct lightfs_dentry *)((char *)block + sizeof(struct lightfs_d_head));
+    
+    int i;
+    for(i=0; i<old_ci->blocks; i++){
+        if(strncmp(dent->filename, old_dentry->d_iname, lightfs_fnlen) == true || dent->inode == old_dentry->d_inode->i_ino){
+            memset((char*)dent + i * sizeof(struct lightfs_dentry), 0, sizeof(struct lightfs_dentry));
+            break;
+        }
+    }
+    sync_block(sb, old_ci->block[0], block);
+
+    //new fill
+    block = get_block(sb, new_ci->block[0]);
+    if(!block){
+        return -EINVAL;
+    }
+    dent = fill_disk_dentry(new_dentry);
+    int pos = find_first_empty_dentry(new_dir);
+    memcpy(block + sizeof(struct lightfs_d_head) + pos * sizeof(struct lightfs_dentry), 
+            dent, 
+            sizeof(struct lightfs_dentry));
+    sync_block(sb, new_ci->block[0], block);
+
     return 0;
 }
 

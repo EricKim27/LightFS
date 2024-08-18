@@ -125,3 +125,4 @@ int write_inode(struct inode *inode, __u32 ino);
 
 int init_dir(struct super_block *sb, struct inode *dir, struct inode *parent);
 int find_first_empty_dentry(struct inode *dir);
+struct lightfs_dentry *fill_disk_dentry(struct dentry *dentry);
