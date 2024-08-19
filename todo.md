@@ -1,6 +1,7 @@
 # TO-DO:
 ## inode operations
  - validate the offset calculation method
+   - all calculation methods need to be fixed to have the initial block & inode number as 1; not 0
 
 ## file operations
  - Trunication
