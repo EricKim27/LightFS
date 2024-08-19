@@ -5,7 +5,19 @@ The name is LightFS not because I made it very light, it's because I didn't cons
 
 considering about changing the name to 1kfs, because it operates on 1KiB logical blocks.
 
-Most operations are in completion, but I'm still far away from making the mkfs code and further fixing problems within the driver.
+The mkfs program is complete, you can format by compiling the mkfs code with:
+
+```
+gcc mkfs.c -o mkfs.lightfs
+```
+
+and then running:
+
+```
+$ mkfs.lightfs <your image file>
+```
+
+Most operations are in completion, but I'm still far away from fixing problems within the driver.
 
 [to do list](todo.md)
 
