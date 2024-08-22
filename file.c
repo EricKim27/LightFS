@@ -3,7 +3,6 @@
 #include <linux/slab.h>
 #include <linux/mpage.h>
 
-//going to implement writepage here.
 __u32 physical_to_logical(__u32 physical, struct super_block *sb) 
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
@@ -265,9 +264,9 @@ static ssize_t lightfs_write(struct file *file,
     __u32 block_size = sbi->block_size;
     char *block;
     for(i = 0; i<number_of_blocks; i++) {
-        block = get_block(sb, b_num[i + start_block]);
+        block = get_block(sb, *(b_num[i + start_block]));
         memcpy(block, dat + i * sbi->block_size, block_size);
-        sync_block(sb, b_num[i+start_block], block);
+        sync_block(sb, *(b_num[i+start_block]), block);
     }
     ret += size;
     len -= size;
@@ -340,7 +339,7 @@ static int lightfs_writepage(struct page *page, struct writeback_control *wbc)
     lock_page(page);
     char *page_data = kmap(page);
     for(i=0; i<number_of_blocks; i++){
-        block_list[i] = ci->block[start_in_block + i];
+        block_list[i] = *(ci->block[start_in_block + i]);
     }
 
     block = get_block(sb, block_list[0]);
@@ -373,9 +372,6 @@ static int lightfs_write_begin(struct file *file,
 {
     if(len > LIGHTFS_MAX_FSIZE) {
         return -ENOSPC;
-    }
-     if (!may_write_to_inode(file->f_inode)) {
-        return -EACCES;
     }
 
     return 0;

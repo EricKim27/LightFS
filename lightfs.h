@@ -31,7 +31,6 @@
 #define lightfs_fnlen 60
 #define LIGHTFS_LOGICAL_BS 1024
 #define LIGHTFS_MAX_FSIZE 4194304
-#define NULL ((void *)0)
 #define NUM_LB_PB(block_size) LIGHTFS_LOGICAL_BS / block_size
 
 //Superblock Structure(1024 bytes in size)

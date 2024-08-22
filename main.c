@@ -38,6 +38,7 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 
     sb->s_op = &lightfs_s_ops;
     sb->s_magic = lightfs_magic;
+    sb->s_fs_info = sbi;
     sb_set_blocksize(sb, 1024);
     sbh = sb_bread(sb, 1);
     if(!sbh)
@@ -77,7 +78,6 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
     sbi->last_check_time = chksb->last_check_time;
     sbi->created_os = chksb->created_os;
     sbi->error = 1;
-    sb->s_fs_info = sbi;
     brelse(sbh);
 
     root_inode = lightfs_iget(sb, sbi->root_inode);
@@ -164,10 +164,13 @@ static int lightfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 }
 static void lightfs_kill_super(struct super_block *sb)
 {
-    kill_block_super(sb);
-    lightfs_free_bitmap(sb);
+    struct lightfs_superblock *sbi = sb->s_fs_info;
+    if(sbi->inode_bmap != NULL || sbi->data_bitmap != NULL)
+        lightfs_free_bitmap(sb);
     //TODO: additional jobs
-    pr_info("unmounted lightfs drive\n");
+    kfree(sbi);
+    kill_block_super(sb);
+    pr_info("killed superblock.\n");
 }
 
 static struct file_system_type lightfs_fs_type = {

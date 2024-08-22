@@ -1,4 +1,10 @@
 *.o
 /.vscode/*
 compile.log
+*.cmd
+*.ko
+*.symvers
+*.order
+*.mod
+*.mod.c
 *.img

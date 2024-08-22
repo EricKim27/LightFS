@@ -286,7 +286,7 @@ static int lightfs_rename(struct mnt_idmap *id,
     struct lightfs_inode_info *old_ci = old_dir->i_private;
     struct lightfs_inode_info *new_ci = new_dir->i_private;
     
-    char *block = get_block(sb, old_ci->block[0]);
+    char *block = get_block(sb, *(old_ci->block[0]));
     if(!block){
         return -EINVAL;
     }
@@ -300,10 +300,10 @@ static int lightfs_rename(struct mnt_idmap *id,
             break;
         }
     }
-    sync_block(sb, old_ci->block[0], block);
+    sync_block(sb, *(old_ci->block[0]), block);
 
     //new fill
-    block = get_block(sb, new_ci->block[0]);
+    block = get_block(sb, *(new_ci->block[0]));
     if(!block){
         return -EINVAL;
     }
@@ -312,7 +312,7 @@ static int lightfs_rename(struct mnt_idmap *id,
     memcpy(block + sizeof(struct lightfs_d_head) + pos * sizeof(struct lightfs_dentry), 
             dent, 
             sizeof(struct lightfs_dentry));
-    sync_block(sb, new_ci->block[0], block);
+    sync_block(sb, *(new_ci->block[0]), block);
 
     return 0;
 }
@@ -332,7 +332,7 @@ static int lightfs_rmdir(struct inode *dir, struct dentry *dentry)
         return -EINVAL;
     }
 
-    char *i_block = get_block(sb, ci->block[0]);
+    char *i_block = get_block(sb, *(ci->block[0]));
     if(i_block == NULL) {
         printk(KERN_ERR "rmdir: error while reading i_block");
         return -EINVAL;
@@ -348,7 +348,7 @@ static int lightfs_rmdir(struct inode *dir, struct dentry *dentry)
         return -ENOENT;
     }
     
-    sync_block(sb, ci->block[0], i_block);
+    sync_block(sb, *(ci->block[0]), i_block);
     return 0;
 }
 

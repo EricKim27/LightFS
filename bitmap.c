@@ -87,7 +87,7 @@ int change_ibitmap(struct super_block *sb, __u32 ino)
         return -EFAULT;
     }
     bitmap = (bool *)((char *)bh->b_data + bitmap_shift);
-    if(bitmap == true)
+    if(*bitmap == true)
         *bitmap = false;
     else
         *bitmap = true;
@@ -115,7 +115,7 @@ int change_bbitmap(struct super_block *sb, __u32 blk)
         return -EFAULT;
     }
     bitmap = (bool *)((char *)bh->b_data + block_shift);
-    if(bitmap == 1)
+    if(*bitmap == 1)
         *bitmap = false;
     else
         *bitmap = true;

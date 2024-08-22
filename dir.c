@@ -41,7 +41,7 @@ struct lightfs_dentry *fill_disk_dentry(struct dentry *dentry)
 {
     struct lightfs_dentry *retent = (struct lightfs_dentry *)kmalloc(sizeof(struct lightfs_dentry), GFP_KERNEL);
     if(strncpy(retent->filename, dentry->d_iname, lightfs_fnlen) == false){
-        return -EINVAL;
+        return NULL;
     }
     retent->inode = dentry->d_inode->i_ino;
     return retent;
@@ -54,7 +54,7 @@ static int lightfs_iterate(struct file *dir, struct dir_context *ctx)
     inode = dir->f_inode;
     struct lightfs_inode_info *ci = inode->i_private;
     struct super_block *sb = inode->i_sb;
-    char *blk = get_block(sb, ci->block[0]);
+    char *blk = get_block(sb, *(ci->block[0]));
     if(!blk) {
         kfree(blk);
         return -EFAULT;
@@ -92,7 +92,7 @@ int find_first_empty_dentry(struct inode *dir)
     struct lightfs_inode_info *ci = dir->i_private;
     struct lightfs_dentry *d_found;
     
-    char *dir_block = get_block(sb, ci->block[0]);
+    char *dir_block = get_block(sb, *(ci->block[0]));
     if(dir_block == NULL) {
         return -EINVAL;
     }
