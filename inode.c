@@ -40,9 +40,12 @@ struct inode *lightfs_iget(struct super_block *sb, size_t inode)
     i_uid_write(mem_inode, raw_inode->i_uid);
     mem_inode->i_size = le32_to_cpu(raw_inode->i_size);
     mem_inode->i_mode = le32_to_cpu(raw_inode->i_mode);
-    mem_inode->__i_atime = raw_inode->i_atime;
-    mem_inode->__i_mtime = raw_inode->i_mtime;
-    mem_inode->__i_ctime = raw_inode->i_ctime;
+    mem_inode->i_atime_sec = raw_inode->i_atime_sec;
+    mem_inode->i_mtime_sec = raw_inode->i_mtime_sec;
+    mem_inode->i_ctime_sec = raw_inode->i_ctime_sec;
+    mem_inode->i_atime_nsec = raw_inode->i_atime_nsec;
+    mem_inode->i_mtime_nsec = raw_inode->i_mtime_nsec;
+    mem_inode->i_ctime_nsec = raw_inode->i_ctime_nsec;
     ci->block_no_blk = raw_inode->block_no_blk;
     __u32 **blk = (__u32 **)get_block(sb, raw_inode->block_no_blk);
     ci->block = blk;
@@ -76,6 +79,7 @@ int write_inode(struct inode *inode, __u32 ino)
     size_t ino_init = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1);
     size_t inode_location;
     size_t inode_shift = inode->i_ino % (LIGHTFS_LOGICAL_BS / sizeof(struct lightfs_inode));
+
     if(inode_shift == 0)
         inode_location = ino_init + inode->i_ino / (LIGHTFS_LOGICAL_BS / sizeof(struct lightfs_inode));
     else
@@ -89,9 +93,15 @@ int write_inode(struct inode *inode, __u32 ino)
 
     ci->block_no_blk = ino_info->block_no_blk;
     ci->blocks = ino_info->blocks;
-    ci->i_atime = inode->__i_atime;
-    ci->i_ctime = inode->__i_ctime;
-    ci->i_mtime = inode->__i_mtime;
+
+    ci->i_atime_sec = inode->i_atime_sec;
+    ci->i_ctime_sec = inode->i_ctime_sec;
+    ci->i_mtime_sec = inode->i_mtime_sec;
+
+    ci->i_atime_nsec = inode->i_atime_nsec;
+    ci->i_ctime_nsec = inode->i_ctime_nsec;
+    ci->i_mtime_nsec = inode->i_mtime_nsec;
+
     ci->i_size = cpu_to_le32(inode->i_size);
     ci->i_mode = cpu_to_le32(inode->i_mode);
     ci->i_uid = from_kuid(&init_user_ns ,inode->i_uid);
@@ -195,7 +205,9 @@ static int lightfs_create(struct mnt_idmap *id,
     inode->i_ino = get_next_ino();
     inode_init_owner(id, inode, dir, mode);
     inode->i_size = 0;
-    inode->__i_atime = inode->__i_mtime = inode->__i_ctime = current_time(inode);
+    struct timespec64 time = current_time(inode);
+    inode->i_atime_sec = inode->i_mtime_sec = inode->i_ctime_sec = time.tv_sec;
+    inode->i_atime_nsec = inode->i_mtime_nsec = inode->i_ctime_nsec = time.tv_nsec;
     
     size_t b_offset = 1 + (inode->i_ino / LIGHTFS_LOGICAL_BS) + 1; //This calculation method needs to change.
     size_t b_shift = inode->i_ino % LIGHTFS_LOGICAL_BS;
@@ -212,7 +224,8 @@ static int lightfs_create(struct mnt_idmap *id,
 
     //TODO: set operations
     
-    inode_i->i_atime = inode_i->i_mtime = inode_i->i_ctime = inode->__i_atime;
+    inode_i->i_atime_sec = inode_i->i_mtime_sec = inode_i->i_ctime_sec = inode->i_atime_sec;
+    inode_i->i_atime_nsec = inode_i->i_mtime_nsec = inode_i->i_ctime_nsec = inode->i_atime_nsec;
     inode_i->i_mode = inode->i_mode;
     inode_i->i_gid = inode->i_gid.val;
     inode_i->i_uid = inode->i_uid.val;

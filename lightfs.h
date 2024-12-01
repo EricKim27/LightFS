@@ -27,7 +27,7 @@
     inside one logical blocks, and data block size is expected to be n * 1024 bytes in size.
 */
 
-#define lightfs_magic 0x20070207
+#define lightfs_magic 0x27
 #define lightfs_fnlen 60
 #define LIGHTFS_LOGICAL_BS 1024
 #define LIGHTFS_MAX_FSIZE 4194304
@@ -66,12 +66,15 @@ struct lightfs_inode {
     __u32 i_uid;
     __u32 i_gid;
     __u32 i_size;
-    struct timespec64 i_atime;
-    struct timespec64 i_mtime;
-    struct timespec64 i_ctime;
+    time64_t i_atime_sec;
+    time64_t i_mtime_sec;
+    time64_t i_ctime_sec;
+    u32	i_atime_nsec;
+	u32	i_mtime_nsec;
+	u32	i_ctime_nsec;
     __u32 blocks;
     __u32 block_no_blk;
-    char padding[184];
+    char padding[196];
 };
 
 /*

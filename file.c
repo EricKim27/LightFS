@@ -3,7 +3,7 @@
 #include <linux/slab.h>
 #include <linux/mpage.h>
 
-__u32 physical_to_logical(__u32 physical, struct super_block *sb) 
+static __u32 physical_to_logical(__u32 physical, struct super_block *sb) 
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
     return physical * (sbi->block_size / LIGHTFS_LOGICAL_BS) - ((sbi->block_size / LIGHTFS_LOGICAL_BS) - 1);
@@ -367,7 +367,7 @@ static int lightfs_write_begin(struct file *file,
                                 struct address_space *mapping,
                                 loff_t pos,
                                 unsigned int len,
-                                struct page **pagep,
+                                struct folio **foliop,
                                 void **fsdata)
 {
     if(len > LIGHTFS_MAX_FSIZE) {

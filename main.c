@@ -46,16 +46,14 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
     
     chksb = (struct lightfs_superblock *) sbh->b_data;
 
-    if(chksb->magicsig != sb->s_magic)
-    {
+    if(chksb->magicsig != sb->s_magic) {
         printk("Not a lightfs filesystem.\n");
         ret = -EIO;
         goto release;
     }
     sbi = kmalloc(sizeof(struct lightfs_superblock), GFP_KERNEL);
 
-    if(!sbi)
-    {
+    if(!sbi) {
         ret = -ENOMEM;
         goto release;
     }
