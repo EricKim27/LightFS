@@ -38,6 +38,7 @@ int lightfs_fill_super(struct super_block *sb, void *data, int silent)
 
     sb->s_op = &lightfs_s_ops;
     sb->s_magic = lightfs_magic;
+    sb->s_maxbytes = 1048576;
     sb->s_fs_info = sbi;
     sb_set_blocksize(sb, 1024);
     sbh = sb_bread(sb, 1);

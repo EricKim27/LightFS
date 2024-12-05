@@ -130,7 +130,7 @@ struct lightfs_superblock *fill_super(size_t ib_num, size_t fs_size)
     sb->free_data = ib_num;
     sb->state = 0;
     sb->error = 0;
-    sb->magicsig = 0x20070207;
+    sb->magicsig = 0x27;
     
     return sb;
 }
