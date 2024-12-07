@@ -108,6 +108,10 @@ extern const struct file_operations lightfs_dir_operations;
 extern const struct file_operations lightfs_file_operations;
 //extern const struct file_operations lightfs_link_operations;
 
+inline uint32_t ceil_div(uint32_t numerator, uint32_t denominator) {
+    return (numerator + denominator - 1) / denominator;
+}
+
 int lightfs_get_first_bit(struct super_block *sb);
 int sync_block(struct super_block *sb, __u32 block_no, char *buf);
 void block_cleanup(struct buffer_head **bh, struct lightfs_superblock *sbi);

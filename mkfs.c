@@ -10,7 +10,7 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 
-#define FILL_FS_BYTES 0x22
+#define FILL_FS_BYTES 0x00
 #define LOGICAL_SIZE 1024
 char bytes = FILL_FS_BYTES;
 
@@ -43,12 +43,15 @@ struct lightfs_inode {
     uint32_t i_uid;
     uint32_t i_gid;
     uint32_t i_size;
-    struct timespec64 i_atime;
-    struct timespec64 i_mtime;
-    struct timespec64 i_ctime;
+    unsigned long long i_atime_sec;
+    unsigned long long i_mtime_sec;
+    unsigned long long i_ctime_sec;
+    uint32_t	i_atime_nsec;
+	uint32_t	i_mtime_nsec;
+	uint32_t	i_ctime_nsec;
     uint32_t blocks;
     uint32_t block_no_blk;
-    char padding[184];
+    char padding[196];
 };
 
 struct lightfs_dentry {
@@ -61,12 +64,16 @@ struct lightfs_d_head {
     char padding[48];
 };
 
-void get_time(struct timespec64 *ts)
+void get_time(struct lightfs_inode *ino)
 {
     struct timespec ts_now;
     clock_gettime(CLOCK_REALTIME, &ts_now);
-    ts->tv_sec = ts_now.tv_sec;
-    ts->tv_nsec = ts_now.tv_nsec;
+    ino->i_atime_sec = ts_now.tv_sec;
+    ino->i_mtime_sec = ts_now.tv_sec;
+    ino->i_ctime_sec = ts_now.tv_sec;
+    ino->i_atime_nsec = ts_now.tv_nsec;
+    ino->i_mtime_nsec = ts_now.tv_nsec;
+    ino->i_ctime_nsec = ts_now.tv_nsec;
 }
 size_t calculate_inode_block_numbers(long long size, int block_size, int inode_size) {
     long long usable_size = size - 2048; // Subtract overhead: 2048 bytes reserved
@@ -147,9 +154,7 @@ struct lightfs_inode *set_root_inode(uint32_t max_inode)
     while(inode->block_no_blk > max_inode){
         inode->block_no_blk = (uint32_t)(rand() % (max_inode + 1 - 0) + 0);
     }
-    get_time(&inode->i_atime);
-    inode->i_ctime = inode->i_atime;
-    inode->i_mtime = inode->i_atime;
+    get_time(inode);
 
     return inode;
 }
