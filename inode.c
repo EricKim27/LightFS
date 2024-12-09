@@ -11,12 +11,13 @@
 static const struct inode_operations lightfs_inode_operations;
 static const struct file_operations lightfs_link_operations;
 //getting inode structure from disk
-int lightfs_inode_read(struct super_block *sb, struct lightfs_inode *inode, unsigned long ino)
+/*int lightfs_inode_read(struct super_block *sb, struct lightfs_inode *inode, unsigned long ino)
 {
     //TODO: Needs more work
     struct lightfs_superblock *sbi = sb->s_fs_info;
     u64 logical_offset = 1 + (sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1 + (sbi->inode_block_num / LIGHTFS_LOGICAL_BS);
 }
+*/
 struct inode *lightfs_iget(struct super_block *sb, unsigned long inode)
 {
     struct lightfs_superblock *sbi = sb->s_fs_info;
