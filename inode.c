@@ -13,6 +13,7 @@ static const struct file_operations lightfs_link_operations;
 //getting inode structure from disk
 int lightfs_inode_read(struct super_block *sb, struct lightfs_inode *inode, unsigned long ino)
 {
+    //TODO: Needs more work
     struct lightfs_superblock *sbi = sb->s_fs_info;
     u64 logical_offset = 1 + (sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1 + (sbi->inode_block_num / LIGHTFS_LOGICAL_BS);
 }
@@ -29,7 +30,7 @@ struct inode *lightfs_iget(struct super_block *sb, unsigned long inode)
     mem_inode->i_private = ci;
     ci->vfs_inode = mem_inode;
     //TODO: Verify if the calculated offset is correct
-    __u32 inode_offset = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1) + (inode * sizeof(struct lightfs_inode) / LIGHTFS_LOGICAL_BS);
+    __u32 inode_offset = 1 + ((sbi->data_block_num / LIGHTFS_LOGICAL_BS) + 1) + ((sbi->inode_block_num / LIGHTFS_LOGICAL_BS) + 1) + (inode * sizeof(struct lightfs_inode) / LIGHTFS_LOGICAL_BS) + 1;
     unsigned int inode_location_inlb = (inode * sizeof(struct lightfs_inode)) % LIGHTFS_LOGICAL_BS;
     bh = sb_bread(sb, inode_offset);
 
